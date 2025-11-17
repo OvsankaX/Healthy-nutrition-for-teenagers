@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Полезные и вредные привычки в питании подростков</title>
+  <title>Таблица-помощник по привычкам</title>
   <style>
     body {
       margin: 0;
@@ -11,36 +11,6 @@
       background: #0e0e0e;
       color: #e5e5e5;
       padding: 20px;
-    }
-    h1 {
-      text-align: center;
-      margin-bottom: 10px;
-    }
-    .section {
-      background: #1a1a1a;
-      padding: 20px;
-      margin-bottom: 20px;
-      border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.4);
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-    }
-    .good {
-      background: #123012;
-      padding: 15px;
-      border-radius: 8px;
-    }
-    .bad {
-      background: #3a1111;
-      padding: 15px;
-      border-radius: 8px;
-    }
-    ul {
-      margin: 0;
-      padding-left: 20px;
     }
     table {
       width: 100%;
@@ -57,238 +27,142 @@
     th {
       background: #222;
     }
-    body.dark {
-      background: #111;
-      color: #eee;
-    }
-    body.dark .section { background: #1a1a1a; }
-    body.dark .good { background: #244d24; }
-    body.dark .bad { background: #5a1e1e; }
+    body.dark { background: #111; color: #eee; }
     body.dark th { background: #333; }
-    .toggle {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      padding: 10px 14px;
-      background: #000;
-      color: #fff;
-      border-radius: 8px;
-      cursor: pointer;
-      user-select: none;
+    #filter {
+      width: 100%;
+      margin-top: 10px;
+      padding:6px;
+      background:#111;
+      color:#fff;
+      border:1px solid #444;
+      border-radius:6px;
     }
-    /* адаптация под телефон */
     @media (max-width: 600px) {
-      body {
-        padding: 10px;
-      }
-      .grid {
-        grid-template-columns: 1fr;
-        gap: 10px;
-      }
-      h1 {
-        font-size: 22px;
-      }
-      .section {
-        padding: 15px;
-      }
-      table {
-        display: block;
-        overflow-x: auto;
-        white-space: nowrap;
-      }
       table tr td, table tr th {
         font-size: 14px;
         padding: 8px;
       }
-      #filter {
-        width: 100%;
-        margin-top: 10px;
-      }
     }
-      .grid {
-        grid-template-columns: 1fr;
-        gap: 10px;
-      }
-      h1 {
-        font-size: 22px;
-      }
-      .section {
-        padding: 15px;
-      }
-      table tr td, table tr th {
-        font-size: 14px;
-        padding: 6px;
-      }
-      #filter {
-        width: 100%;
-        margin-top: 10px;
-      }
-    }
-</style>
+  </style>
 </head>
 <body>
-  <h1>Здоровое питание подростка</h1>
+  <h2>Таблица-помощник</h2>
+  <table>
+    <tr>
+      <th>Категория</th>
+      <th>Привычка</th>
+      <th>Почему важно</th>
+      <th>Рекомендации</th>
+    </tr>
+    <tr>
+      <td>Полезные</td>
+      <td>Регулярные приёмы пищи</td>
+      <td>Стабильная энергия</td>
+      <td>3–4 раза в день</td>
+    </tr>
+    <tr>
+      <td>Полезные</td>
+      <td>Овощи и фрукты</td>
+      <td>Витамины, клетчатка</td>
+      <td>Каждый день</td>
+    </tr>
+    <tr>
+      <td>Вредные</td>
+      <td>Сладости и газировка</td>
+      <td>Скачки сахара</td>
+      <td>Заменить фруктами</td>
+    </tr>
+    <tr>
+      <td>Вредные</td>
+      <td>Фастфуд</td>
+      <td>Риск ожирения</td>
+      <td>Редко</td>
+    </tr>
+    <tr>
+      <td>Полезные</td>
+      <td>Достаток воды</td>
+      <td>Гидратация организма</td>
+      <td>1.5–2 л в день</td>
+    </tr>
+    <tr>
+      <td>Полезные</td>
+      <td>Цельнозерновые продукты</td>
+      <td>Удержание энергии</td>
+      <td>Хлеб, каши, крупы</td>
+    </tr>
+    <tr>
+      <td>Вредные</td>
+      <td>Перекусы перед сном</td>
+      <td>Нарушение сна и пищеварения</td>
+      <td>Последний приём за 2–3 часа до сна</td>
+    </tr>
+    <tr>
+      <td>Вредные</td>
+      <td>Недостаток воды</td>
+      <td>Усталость, снижение концентрации</td>
+      <td>Пить равномерно весь день</td>
+    </tr>
+    <tr>
+      <td>Полезные</td>
+      <td>Белок в рационе</td>
+      <td>Рост мышц, длительное насыщение</td>
+      <td>Мясо, рыба, яйца, бобовые ежедневно</td>
+    </tr>
+    <tr>
+      <td>Полезные</td>
+      <td>Живые продукты</td>
+      <td>Поддержка кишечной микрофлоры</td>
+      <td>Йогурт, кефир, ферментированные продукты</td>
+    </tr>
+    <tr>
+      <td>Полезные</td>
+      <td>Ограничение соли</td>
+      <td>Снижение нагрузки на сердце</td>
+      <td>Меньше чипсов и солёных снеков</td>
+    </tr>
+    <tr>
+      <td>Вредные</td>
+      <td>Энергетики</td>
+      <td>Перегрузка сердца, бессонница</td>
+      <td>Заменить водой и нормальным сном</td>
+    </tr>
+    <tr>
+      <td>Вредные</td>
+      <td>Еда на бегу</td>
+      <td>Проблемы с пищеварением</td>
+      <td>Есть спокойно, не торопясь</td>
+    </tr>
+    <tr>
+      <td>Вредные</td>
+      <td>Недостаток овощей</td>
+      <td>Дефицит витаминов</td>
+      <td>Добавлять хотя бы 1 овощ в каждый приём</td>
+    </tr>
+    <tr>
+      <td>Вредные</td>
+      <td>Слишком поздний ужин</td>
+      <td>Нарушение сна</td>
+      <td>Ужин за 2–3 часа до сна</td>
+    </tr>
+  </table>
 
-  <div class="section">
-    <p>Подростковый возраст — время роста, когда питание напрямую влияет на энергию, мозговую активность и здоровье организма.</p>
-  </div>
-
-  <div class="section grid">
-    <div class="good">
-      <h2>Полезные привычки</h2>
-      <ul>
-        <li>Регулярные приёмы пищи 3–4 раза в день</li>
-        <li>Овощи, фрукты, цельные продукты</li>
-        <li>1.5–2 л воды в день</li>
-        <li>Меньше сладостей и выпечки</li>
-        <li>Минимум фастфуда</li>
-      </ul>
-    </div>
-
-    <div class="bad">
-      <h2>Вредные привычки</h2>
-      <ul>
-        <li>Частые перекусы сладостями, газировкой</li>
-        <li>Пропуск завтрака</li>
-        <li>Переедание</li>
-        <li>Чрезмерный фастфуд</li>
-      </ul>
-    </div>
-  </div>
-
-  <div class="section">
-    <h2>Таблица-помощник</h2>
-    <table>
-      <tr>
-        <th>Категория</th>
-        <th>Привычка</th>
-        <th>Почему важно</th>
-        <th>Рекомендации</th>
-      </tr>
-      <tr>
-        <td>Полезные</td>
-        <td>Регулярные приёмы пищи</td>
-        <td>Стабильная энергия</td>
-        <td>3–4 раза в день</td>
-      </tr>
-      <tr>
-        <td>Полезные</td>
-        <td>Овощи и фрукты</td>
-        <td>Витамины, клетчатка</td>
-        <td>Каждый день</td>
-      </tr>
-      <tr>
-        <td>Вредные</td>
-        <td>Сладости и газировка</td>
-        <td>Скачки сахара</td>
-        <td>Заменить фруктами</td>
-      </tr>
-      <tr>
-        <td>Вредные</td>
-        <td>Фастфуд</td>
-        <td>Риск ожирения</td>
-        <td>Редко</td>
-      </tr>
-          <tr>
-        <td>Полезные</td>
-        <td>Достаток воды</td>
-        <td>Гидратация организма</td>
-        <td>1.5–2 л в день</td>
-      </tr>
-      <tr>
-        <td>Полезные</td>
-        <td>Цельнозерновые продукты</td>
-        <td>Удержание энергии</td>
-        <td>Хлеб, каши, крупы</td>
-      </tr>
-      <tr>
-        <td>Вредные</td>
-        <td>Перекусы перед сном</td>
-        <td>Нарушение сна и пищеварения</td>
-        <td>Последний приём за 2–3 часа до сна</td>
-      </tr>
-      <tr>
-        <td>Вредные</td>
-        <td>Недостаток воды</td>
-        <td>Усталость, снижение концентрации</td>
-        <td>Пить равномерно весь день</td>
-      </tr>
-          <tr>
-        <td>Полезные</td>
-        <td>Белок в рационе</td>
-        <td>Рост мышц, длительное насыщение</td>
-        <td>Мясо, рыба, яйца, бобовые ежедневно</td>
-      </tr>
-      <tr>
-        <td>Полезные</td>
-        <td>Живые продукты</td>
-        <td>Поддержка кишечной микрофлоры</td>
-        <td>Йогурт, кефир, ферментированные продукты</td>
-      </tr>
-      <tr>
-        <td>Полезные</td>
-        <td>Ограничение соли</td>
-        <td>Снижение нагрузки на сердце</td>
-        <td>Меньше чипсов и солёных снеков</td>
-      </tr>
-      <tr>
-        <td>Вредные</td>
-        <td>Энергетики</td>
-        <td>Перегрузка сердца, бессонница</td>
-        <td>Заменить водой и нормальным сном</td>
-      </tr>
-      <tr>
-        <td>Вредные</td>
-        <td>Еда на бегу</td>
-        <td>Проблемы с пищеварением</td>
-        <td>Есть спокойно, не торопясь</td>
-      </tr>
-      <tr>
-        <td>Вредные</td>
-        <td>Недостаток овощей</td>
-        <td>Дефицит витаминов</td>
-        <td>Добавлять хотя бы 1 овощ в каждый приём</td>
-      </tr>
-      <tr>
-        <td>Вредные</td>
-        <td>Слишком поздний ужин</td>
-        <td>Нарушение сна</td>
-        <td>Ужин за 2–3 часа до сна</td>
-      </tr>
-    </table>
-
-    <label style="display:block;margin-top:15px;">Фильтр категорий:</label>
-    <select id="filter" style="padding:6px;background:#111;color:#fff;border:1px solid #444;border-radius:6px;">
-      <option value="all">Все</option>
-      <option value="Полезные">Полезные</option>
-      <option value="Вредные">Вредные</option>
-    </select>
-
-    <script>
-      const filter = document.getElementById('filter');
-      filter.addEventListener('change', () => {
-        const rows = document.querySelectorAll('table tr');
-        rows.forEach((row, i) => {
-          if (i === 0) return;
-          const category = row.children[0].innerText.trim();
-          if (filter.value === 'all' || filter.value === category) {
-            row.style.display = '';
-          } else {
-            row.style.display = 'none';
-          }
-        });
-      });
-    </script>
-  </div>
+  <label>Фильтр категорий:</label>
+  <select id="filter">
+    <option value="all">Все</option>
+    <option value="Полезные">Полезные</option>
+    <option value="Вредные">Вредные</option>
+  </select>
 
   <script>
-    // сохраняем тему
-    if (localStorage.getItem('theme') === 'dark') {
-      document.body.classList.add('dark');
-    }
-    document.querySelector('.toggle').addEventListener('click', () => {
-      const isDark = document.body.classList.toggle('dark');
-      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    const filter = document.getElementById('filter');
+    filter.addEventListener('change', () => {
+      const rows = document.querySelectorAll('table tr');
+      rows.forEach((row, i) => {
+        if (i === 0) return;
+        const category = row.children[0].innerText.trim();
+        row.style.display = (filter.value === 'all' || filter.value === category) ? '' : 'none';
+      });
     });
   </script>
 </body>
