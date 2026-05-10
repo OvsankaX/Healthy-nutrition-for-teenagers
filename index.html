@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UPGRADOR V19 FINAL</title>
+    <title>UPGRADOR V20 ULTRA SMOOTH</title>
     <style>
         :root {
             --bg: #0a0a0a; --panel: #161616; --accent: #a020f0;
@@ -14,11 +14,11 @@
         * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body { background: var(--bg); color: #fff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-        /* Уведомления */
+        /* Toasts */
         #toast-container { position: fixed; top: 10px; right: 10px; left: 10px; display: flex; flex-direction: column; gap: 8px; z-index: 9999; }
         .toast {
             background: rgba(22, 22, 22, 0.95); border-left: 4px solid var(--accent);
-            padding: 12px 15px; border-radius: 8px; color: #fff; font-weight: 600; font-size: 0.9rem;
+            padding: 12px 15px; border-radius: 8px; color: #fff; font-weight: 600;
             box-shadow: 0 5px 15px rgba(0,0,0,0.5), 0 0 10px var(--accent-glow);
             display: flex; justify-content: space-between; align-items: center;
             animation: slideIn 0.3s ease forwards; backdrop-filter: blur(5px);
@@ -32,44 +32,42 @@
         }
         .header-logo { 
             position: absolute; left: 50%; transform: translateX(-50%);
-            font-weight: 900; font-size: 1.1rem; color: var(--accent); 
-            letter-spacing: 2px; text-transform: uppercase;
+            font-weight: 900; font-size: 1.1rem; color: var(--accent); letter-spacing: 2px; text-transform: uppercase;
         }
         .nav-btn { font-size: 1.4rem; cursor: pointer; z-index: 10; padding: 5px; }
-        .balance-box { margin-left: auto; display: flex; align-items: center; gap: 6px; font-weight: bold; z-index: 10; }
+        .balance-box { margin-left: auto; display: flex; align-items: center; gap: 6px; font-weight: bold; }
 
         main { flex-grow: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; align-items: center; }
         .container { display: none; width: 100%; max-width: 400px; }
 
-        /* Круг */
+        /* Wheel */
         .wheel-outer { width: 100%; display: flex; justify-content: center; margin: 15px 0; position: relative; }
         .wheel-container { 
             position: relative; width: 240px; height: 240px; 
             border-radius: 50%; border: 6px solid #1a1a1a; background: #000; overflow: hidden;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
         }
         
-        /* ГРАДИЕНТ И СВЕЧЕНИЕ ЗАЛИВКИ */
         #wheel-fill { 
             position: absolute; bottom: 0; width: 100%; 
-            background: linear-gradient(0deg, #6a0dad 0%, var(--accent) 100%);
-            box-shadow: 0 0 30px var(--accent-glow);
+            background: linear-gradient(0deg, #4b0082 0%, var(--accent) 100%);
+            box-shadow: 0 0 40px var(--accent-glow);
             transition: height 0.4s cubic-bezier(0.17, 0.84, 0.44, 1);
         }
 
-        #cursor-wrapper { position: absolute; inset: 0; z-index: 20; }
+        #cursor-wrapper { position: absolute; inset: 0; z-index: 20; will-change: transform; }
         #cursor-line { 
             position: absolute; top: 0; left: 50%; 
-            width: 3px; height: 18px; /* В 2 РАЗА КОРОЧЕ */
+            width: 3px; height: 18px; 
             background: #fff; transform: translateX(-50%); 
-            box-shadow: 0 0 12px #fff; border-radius: 0 0 2px 2px; 
+            box-shadow: 0 0 15px #fff; border-radius: 0 0 3px 3px; 
         }
 
         .center-stat { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; z-index: 5; pointer-events: none; }
-        #status-msg { height: 35px; font-size: 1.6rem; font-weight: 900; margin-top: 5px; text-transform: uppercase; }
+        #status-msg { height: 40px; font-size: 1.8rem; font-weight: 900; margin-top: 5px; text-transform: uppercase; letter-spacing: 2px; }
 
-        /* Канвас для взрывов */
-        #particle-canvas { position: absolute; inset: 0; pointer-events: none; z-index: 100; }
+        /* Canvas for BIG explosion */
+        #particle-canvas { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none; z-index: 100; width: 400px; height: 400px; }
 
         .btn-row { display: flex; width: 100%; gap: 6px; margin-bottom: 8px; }
         .opt-btn { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 12px 2px; border-radius: 10px; flex: 1; font-weight: bold; font-size: 0.85rem; }
@@ -78,15 +76,15 @@
         .action-btn:disabled { background: #333; opacity: 0.5; }
 
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; padding-bottom: 20px; }
-        .item-frame { border: 1px solid #222; border-radius: var(--radius); padding: 12px; background: var(--panel); text-align: center; cursor: pointer; }
-        .item-frame.selected { border-color: var(--accent); background: #1e0a2e; }
+        .item-frame { border: 1px solid #222; border-radius: var(--radius); padding: 12px; background: var(--panel); text-align: center; cursor: pointer; transition: 0.2s; }
+        .item-frame.selected { border-color: var(--accent); background: #1e0a2e; transform: scale(0.98); }
 
-        #modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 8000; padding: 20px; }
+        #modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 8000; padding: 20px; }
         .modal-card { background: var(--panel); border: 1px solid var(--accent); border-radius: 15px; padding: 25px; width: 100%; max-width: 320px; text-align: center; }
 
         #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 9000; display: flex; align-items: center; justify-content: center; }
-        .win-glow { color: var(--win); text-shadow: 0 0 15px var(--win); font-weight: 900; }
-        .loss-glow { color: var(--loss); text-shadow: 0 0 15px var(--loss); font-weight: 900; }
+        .win-glow { color: var(--win); text-shadow: 0 0 20px var(--win); }
+        .loss-glow { color: var(--loss); text-shadow: 0 0 20px var(--loss); }
     </style>
 </head>
 <body>
@@ -105,15 +103,15 @@
 
     <div id="auth-screen">
         <div style="background:var(--panel); padding:25px; border-radius:15px; border:1px solid var(--accent); width:280px; text-align:center;">
-            <h2 style="color:var(--accent); margin-bottom:15px;">UPGRADOR LOGIN</h2>
-            <input type="text" id="user-in" placeholder="Твой ник..." style="width:100%; padding:12px; background:#000; border:1px solid #333; color:#fff; border-radius:8px; margin-bottom:15px; text-align:center; outline:none;">
+            <h2 style="color:var(--accent); margin-bottom:15px;">UPGRADOR V20</h2>
+            <input type="text" id="user-in" placeholder="Никнейм..." style="width:100%; padding:12px; background:#000; border:1px solid #333; color:#fff; border-radius:8px; margin-bottom:15px; text-align:center; outline:none;">
             <button class="action-btn" style="margin:0" onclick="login()">ВОЙТИ</button>
         </div>
     </div>
 
     <header>
         <div class="nav-btn" onclick="showPage('shop')">🛒</div>
-        <div class="header-logo" onclick="showPage('main')">ОПГРЕЙДОР</div>
+        <div class="header-logo" onclick="showPage('main')">UPGRADOR</div>
         <div class="balance-box">
             <span id="bal">0</span> ₴
             <div class="nav-btn" onclick="showPage('profile')">👤</div>
@@ -149,10 +147,6 @@
 
         <div id="p-shop" class="container">
             <h3 style="margin-bottom:10px">МАГАЗИН</h3>
-            <div style="display:flex; gap:8px; margin-bottom:15px;">
-                <input type="number" id="budget" placeholder="Мин. цена..." style="flex:1; padding:12px; background:#000; border:1px solid #333; color:#fff; border-radius:8px; outline:none;">
-                <button class="opt-btn" style="flex:0.4" onclick="refreshShop()">ПОИСК</button>
-            </div>
             <div id="shop-grid" class="grid"></div>
             <button class="action-btn" onclick="askBuy()">КУПИТЬ ВЫБРАННОЕ</button>
         </div>
@@ -169,39 +163,39 @@
     </main>
 
     <script>
-        const ITEMS_POOL = ["Зуб", "Мозг", "Заначка", "Сифилис", "Сердце", "Почка", "Кот"];
         let user = { name: "", bal: 1000, inv: [], stats: { ups: 0, lost: 0, earned: 0, best: {n: "-", p: 0} } };
         let chance = 10, selected = new Set(), spinning = false, currentRot = 0, pendingAction = null;
 
-        // Взрывы
+        // БОЛЬШОЙ ВЗРЫВ
         const canvas = document.getElementById('particle-canvas');
         const ctx = canvas.getContext('2d');
         let particles = [];
-        function resize() { canvas.width = 240; canvas.height = 240; }
-        resize();
+        canvas.width = 400; canvas.height = 400;
 
         function spawnExplosion() {
-            for(let i=0; i<30; i++) {
+            for(let i=0; i<60; i++) {
                 particles.push({
-                    x: 120, y: 120,
-                    vx: (Math.random()-0.5)*8, vy: (Math.random()-0.5)*8,
-                    life: 1, color: Math.random() > 0.5 ? '#a020f0' : '#ffffff'
+                    x: 200, y: 200, // Ровно по центру канваса
+                    vx: (Math.random()-0.5)*12, vy: (Math.random()-0.5)*12,
+                    size: Math.random()*4 + 2,
+                    life: 1, 
+                    color: Math.random() > 0.3 ? '#a020f0' : '#00ff88'
                 });
             }
         }
 
-        function updateParticles() {
-            ctx.clearRect(0,0,240,240);
+        function drawParticles() {
+            ctx.clearRect(0,0,400,400);
             particles.forEach((p,i) => {
-                p.x += p.vx; p.y += p.vy; p.life -= 0.02;
+                p.x += p.vx; p.y += p.vy; p.life -= 0.015;
                 if(p.life <= 0) particles.splice(i,1);
                 ctx.fillStyle = p.color;
                 ctx.globalAlpha = p.life;
-                ctx.beginPath(); ctx.arc(p.x, p.y, 2, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill();
             });
-            requestAnimationFrame(updateParticles);
+            requestAnimationFrame(drawParticles);
         }
-        updateParticles();
+        drawParticles();
 
         function toast(text) {
             const container = document.getElementById('toast-container');
@@ -215,11 +209,11 @@
         function login() {
             const n = document.getElementById('user-in').value.trim();
             if(!n) return;
-            const saved = localStorage.getItem('upg_v19_'+n);
+            const saved = localStorage.getItem('upg_v20_'+n);
             if(saved) user = JSON.parse(saved);
-            else { user.name = n; user.inv = [{id:1, n:"Твои яйца", p:100}]; }
+            else { user.name = n; user.inv = [{id:1, n:"Стартовый пак", p:100}]; }
             document.getElementById('auth-screen').style.display = 'none';
-            update();
+            refreshShop(); update();
         }
 
         function update() {
@@ -228,17 +222,16 @@
             renderInv('inv-prof', false);
             renderStats();
             document.getElementById('go-btn').disabled = (selected.size === 0 || spinning);
-            localStorage.setItem('upg_v19_'+user.name, JSON.stringify(user));
+            localStorage.setItem('upg_v20_'+user.name, JSON.stringify(user));
         }
 
         function renderStats() {
             const total = user.stats.earned - user.stats.lost;
             document.getElementById('stat-box').innerHTML = `
                 👤 Игрок: <b style="color:var(--accent)">${user.name}</b><br>
-                ⚙️ Апгрейдов: <b>${user.stats.ups}</b><hr style="margin:8px 0; opacity:0.1">
                 📊 ИТОГО: <b style="color:${total >= 0 ? 'var(--win)' : 'var(--loss)'}">${total >= 0 ? '+' : ''}${total} ₴</b><br>
-                📈 Выиграл: <span style="color:var(--win)">+${user.stats.earned} ₴</span><br>
-                📉 Слил: <span style="color:var(--loss)">-${user.stats.lost} ₴</span><hr style="margin:8px 0; opacity:0.1">
+                📈 Плюс: <span style="color:var(--win)">+${user.stats.earned} ₴</span><br>
+                📉 Минус: <span style="color:var(--loss)">-${user.stats.lost} ₴</span><hr style="margin:8px 0; opacity:0.1">
                 🏆 Топ: <b>${user.stats.best.n} (${user.stats.best.p} ₴)</b>
             `;
         }
@@ -270,24 +263,34 @@
         }
         function setM(m, id) { setChance(Math.floor(100/m), id); }
 
+        // ПЛАВНАЯ ПРОКРУТКА
         function startSpin() {
             if(spinning || selected.size !== 1) return;
             spinning = true;
             document.getElementById('status-msg').innerText = "";
-            document.getElementById('status-msg').className = "";
-            update();
             document.querySelectorAll('.x-ctrl').forEach(b => b.disabled = true);
+            
             const item = user.inv.find(x => x.id === [...selected][0]);
-            let start = null, dur = 3000, rot = 1440 + (Math.random()*360), sAng = currentRot;
+            let start = null;
+            const duration = 3500; 
+            const totalRotation = 1800 + (Math.random() * 360); 
+            const startAngle = currentRot;
+
+            function easeOutQuart(t) { return 1 - (--t) * t * t * t; }
 
             function animate(now) {
-                if(!start) start = now;
-                let t = Math.min((now - start) / dur, 1);
-                let ease = 1 - Math.pow(1 - t, 4);
-                currentRot = sAng + (ease * rot);
+                if (!start) start = now;
+                const elapsed = now - start;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                currentRot = startAngle + (totalRotation * easeOutQuart(progress));
                 document.getElementById('cursor-wrapper').style.transform = `rotate(${currentRot}deg)`;
-                if(t < 1) requestAnimationFrame(animate);
-                else finish(currentRot % 360, item);
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    finish(currentRot % 360, item);
+                }
             }
             requestAnimationFrame(animate);
         }
@@ -296,27 +299,27 @@
             spinning = false; user.stats.ups++;
             document.querySelectorAll('.x-ctrl').forEach(b => b.disabled = false);
             const winSize = (chance / 100) * 360;
-            const win = (deg >= (180 - winSize/2 - 8) && deg <= (180 + winSize/2 + 8));
+            const win = (deg >= (180 - winSize/2 - 6) && deg <= (180 + winSize/2 + 6));
             
+            const msg = document.getElementById('status-msg');
             if(win) {
                 const profit = Math.floor(item.p * (100/chance)) - item.p;
                 item.p += profit; item.n = "★ " + item.n.replace("★ ", "");
                 user.stats.earned += profit;
                 if(item.p > user.stats.best.p) user.stats.best = {n: item.n, p: item.p};
-                document.getElementById('status-msg').innerText = "УСПЕХ";
-                document.getElementById('status-msg').className = "win-glow";
+                msg.innerText = "УСПЕХ"; msg.className = "win-glow";
                 spawnExplosion();
                 toast(`Успех! +${profit} ₴`);
             } else {
                 user.stats.lost += item.p;
                 user.inv = user.inv.filter(x => x.id !== item.id);
-                document.getElementById('status-msg').innerText = "НЕУДАЧА";
-                document.getElementById('status-msg').className = "loss-glow";
+                msg.innerText = "НЕУДАЧА"; msg.className = "loss-glow";
                 toast(`Слив! -${item.p} ₴`);
             }
             selected.clear(); update();
         }
 
+        // МОДАЛКИ
         function openModal(text, action) {
             document.getElementById('modal-text').innerText = text;
             document.getElementById('modal-overlay').style.display = 'flex';
@@ -328,10 +331,15 @@
             pendingAction = null;
         }
 
+        // МАГАЗИН
         let shopItems = [];
         function refreshShop() {
-            const b = parseInt(document.getElementById('budget').value) || 20;
-            shopItems = Array.from({length:6}, (_,i) => ({id:'s'+i, n: ITEMS_POOL[Math.floor(Math.random()*ITEMS_POOL.length)], p: Math.floor(b + Math.random()*b*0.5)}));
+            const pool = ["Зуб", "Сердце", "Почка", "Мозг", "Глаз", "Челюсть"];
+            shopItems = Array.from({length:6}, (_,i) => ({
+                id:'s'+i, 
+                n: pool[Math.floor(Math.random()*pool.length)], 
+                p: Math.floor(50 + Math.random()*200)
+            }));
             const g = document.getElementById('shop-grid'); g.innerHTML = '';
             shopItems.forEach(i => {
                 const d = document.createElement('div'); d.className = 'item-frame';
@@ -345,11 +353,10 @@
             let sel = shopItems.filter(i => i.sel);
             if(!sel.length) return;
             let cost = sel.reduce((a, b) => a + b.p, 0);
-            openModal(`Купить ${sel.length} предметов за ${cost} ₴?`, () => {
-                if(user.bal < cost) return toast("Недостаточно денег!");
+            openModal(`Купить ${sel.length} шт. за ${cost} ₴?`, () => {
+                if(user.bal < cost) return toast("Мало денег!");
                 sel.forEach(i => { user.bal -= i.p; user.inv.push({...i, id: Date.now()+Math.random(), sel:false}); });
-                toast(`Куплено на ${cost} ₴`);
-                refreshShop(); update();
+                toast(`Куплено!`); refreshShop(); update();
             });
         }
 
@@ -357,22 +364,17 @@
             let sel = user.inv.filter(i => selected.has(i.id));
             if(!sel.length) return;
             let cost = sel.reduce((a, b) => a + b.p, 0);
-            openModal(`Продать ${sel.length} шт. за ${cost} ₴?`, () => {
+            openModal(`Продать выбранное за ${cost} ₴?`, () => {
                 user.inv = user.inv.filter(i => !selected.has(i.id));
-                user.bal += cost;
-                toast(`Продано на ${cost} ₴`);
-                selected.clear(); update();
+                user.bal += cost; toast(`Продано!`); selected.clear(); update();
             });
         }
 
         function askSellAll() {
             if(!user.inv.length) return;
             let cost = user.inv.reduce((a, b) => a + b.p, 0);
-            openModal(`Продать ВСЕ предметы (${user.inv.length} шт.) за ${cost} ₴?`, () => {
-                let count = user.inv.length;
-                user.bal += cost; user.inv = [];
-                toast(`Продано ${count} шт. на ${cost} ₴`);
-                update();
+            openModal(`Продать ВСЁ за ${cost} ₴?`, () => {
+                user.bal += cost; user.inv = []; toast(`Всё продано!`); update();
             });
         }
 
@@ -385,4 +387,3 @@
     </script>
 </body>
 </html>
-
