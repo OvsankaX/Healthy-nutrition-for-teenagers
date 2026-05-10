@@ -1,169 +1,368 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Таблица-помощник по привычкам</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #0e0e0e;
-      color: #e5e5e5;
-      padding: 20px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-      border-radius: 10px;
-      overflow-x: auto;
-      display: block;
-    }
-    th, td {
-      border: 1px solid #444;
-      padding: 10px;
-    }
-    th {
-      background: #222;
-    }
-    body.dark { background: #111; color: #eee; }
-    body.dark th { background: #333; }
-    #filter {
-      width: 100%;
-      margin-top: 10px;
-      padding:6px;
-      background:#111;
-      color:#fff;
-      border:1px solid #444;
-      border-radius:6px;
-    }
-    @media (max-width: 600px) {
-      table tr td, table tr th {
-        font-size: 14px;
-        padding: 8px;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ОПГРЕЙДОР — Твоя судьба в твоих руках</title>
+    <style>
+        :root {
+            --bg: #0a0a0a;
+            --panel: #151515;
+            --accent: #a020f0;
+            --accent-glow: rgba(160, 32, 240, 0.5);
+            --white: #ffffff;
+            --gray: #888;
+        }
+
+        * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; }
+        body { background: var(--bg); color: var(--white); overflow-x: hidden; }
+
+        /* Auth Screen */
+        #auth-screen {
+            position: fixed; inset: 0; background: var(--bg); z-index: 1000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .auth-card { background: var(--panel); padding: 40px; border-radius: 15px; border: 1px solid var(--accent); width: 320px; }
+        input { width: 100%; padding: 10px; margin: 10px 0; background: #000; border: 1px solid var(--gray); color: #fff; }
+
+        /* Header */
+        header { padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; }
+        .logo-group { display: flex; gap: 20px; align-items: center; }
+        .nav-btn { cursor: pointer; font-size: 24px; filter: grayscale(1); transition: 0.3s; }
+        .nav-btn:hover { filter: grayscale(0); }
+        .profile-group { display: flex; align-items: center; gap: 15px; }
+        .balance { color: var(--accent); font-weight: bold; font-size: 1.2rem; }
+        .avatar { width: 40px; height: 40px; background: var(--gray); border-radius: 50%; cursor: pointer; border: 2px solid var(--accent); }
+
+        h1.main-title { text-align: center; color: var(--white); text-transform: uppercase; letter-spacing: 5px; margin: 20px 0; }
+
+        /* Upgrade Area */
+        .upgrade-container { display: flex; flex-direction: column; align-items: center; margin-top: 20px; }
+        
+        .wheel-wrapper { position: relative; width: 300px; height: 300px; border-radius: 50%; border: 4px solid #222; overflow: hidden; background: #111; }
+        #wheel-fill { 
+            position: absolute; bottom: 0; width: 100%; 
+            background: linear-gradient(0deg, var(--accent) 0%, #6a0dad 100%); 
+            transition: height 0.5s ease;
+        }
+        .percent-display { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2.5rem; font-weight: 900; z-index: 5; text-shadow: 0 0 10px #000; }
+        #cursor {
+            position: absolute; width: 20px; height: 20px; background: var(--accent);
+            border: 3px solid #fff; border-radius: 50%; top: -5px; left: 50%;
+            transform: translateX(-50%); z-index: 10; box-shadow: 0 0 15px var(--accent);
+        }
+
+        .main-btn {
+            margin-top: 30px; padding: 15px 50px; background: var(--accent); color: white;
+            border: none; border-radius: 5px; font-weight: bold; cursor: pointer;
+            box-shadow: 0 0 20px var(--accent-glow); transition: 0.3s;
+        }
+        .main-btn:disabled { background: #444; box-shadow: none; cursor: not-allowed; }
+
+        .quick-odds { display: flex; gap: 10px; margin-top: 20px; }
+        .odd-btn { background: transparent; border: 1px solid #333; color: #fff; padding: 5px 15px; cursor: pointer; }
+
+        /* Inventory */
+        .inventory-section { padding: 40px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; margin-top: 20px; }
+        .item-card { 
+            background: var(--panel); border: 1px solid #333; padding: 15px; 
+            text-align: center; cursor: pointer; transition: 0.2s;
+        }
+        .item-card.selected { border-color: var(--accent); box-shadow: inset 0 0 10px var(--accent-glow); }
+        .item-price { color: #4caf50; font-size: 0.9rem; margin-top: 5px; }
+
+        /* Modals */
+        .modal { 
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); 
+            z-index: 2000; align-items: center; justify-content: center; 
+        }
+        .modal-content { background: var(--panel); padding: 30px; border-radius: 10px; width: 80%; max-width: 600px; max-height: 80vh; overflow-y: auto; }
+    </style>
 </head>
 <body>
-  <h2>Таблица-помощник</h2>
-  <table>
-    <tr>
-      <th>Категория</th>
-      <th>Привычка</th>
-      <th>Почему важно</th>
-      <th>Рекомендации</th>
-    </tr>
-    <tr>
-      <td>Полезные</td>
-      <td>Регулярные приёмы пищи</td>
-      <td>Стабильная энергия</td>
-      <td>3–4 раза в день</td>
-    </tr>
-    <tr>
-      <td>Полезные</td>
-      <td>Овощи и фрукты</td>
-      <td>Витамины, клетчатка</td>
-      <td>Каждый день</td>
-    </tr>
-    <tr>
-      <td>Вредные</td>
-      <td>Сладости и газировка</td>
-      <td>Скачки сахара</td>
-      <td>Заменить фруктами</td>
-    </tr>
-    <tr>
-      <td>Вредные</td>
-      <td>Фастфуд</td>
-      <td>Риск ожирения</td>
-      <td>Редко</td>
-    </tr>
-    <tr>
-      <td>Полезные</td>
-      <td>Достаток воды</td>
-      <td>Гидратация организма</td>
-      <td>1.5–2 л в день</td>
-    </tr>
-    <tr>
-      <td>Полезные</td>
-      <td>Цельнозерновые продукты</td>
-      <td>Удержание энергии</td>
-      <td>Хлеб, каши, крупы</td>
-    </tr>
-    <tr>
-      <td>Вредные</td>
-      <td>Перекусы перед сном</td>
-      <td>Нарушение сна и пищеварения</td>
-      <td>Последний приём за 2–3 часа до сна</td>
-    </tr>
-    <tr>
-      <td>Вредные</td>
-      <td>Недостаток воды</td>
-      <td>Усталость, снижение концентрации</td>
-      <td>Пить равномерно весь день</td>
-    </tr>
-    <tr>
-      <td>Полезные</td>
-      <td>Белок в рационе</td>
-      <td>Рост мышц, длительное насыщение</td>
-      <td>Мясо, рыба, яйца, бобовые ежедневно</td>
-    </tr>
-    <tr>
-      <td>Полезные</td>
-      <td>Живые продукты</td>
-      <td>Поддержка кишечной микрофлоры</td>
-      <td>Йогурт, кефир, ферментированные продукты</td>
-    </tr>
-    <tr>
-      <td>Полезные</td>
-      <td>Ограничение соли</td>
-      <td>Снижение нагрузки на сердце</td>
-      <td>Меньше чипсов и солёных снеков</td>
-    </tr>
-    <tr>
-      <td>Вредные</td>
-      <td>Энергетики</td>
-      <td>Перегрузка сердца, бессонница</td>
-      <td>Заменить водой и нормальным сном</td>
-    </tr>
-    <tr>
-      <td>Вредные</td>
-      <td>Еда на бегу</td>
-      <td>Проблемы с пищеварением</td>
-      <td>Есть спокойно, не торопясь</td>
-    </tr>
-    <tr>
-      <td>Вредные</td>
-      <td>Недостаток овощей</td>
-      <td>Дефицит витаминов</td>
-      <td>Добавлять хотя бы 1 овощ в каждый приём</td>
-    </tr>
-    <tr>
-      <td>Вредные</td>
-      <td>Слишком поздний ужин</td>
-      <td>Нарушение сна</td>
-      <td>Ужин за 2–3 часа до сна</td>
-    </tr>
-  </table>
 
-  <label>Фильтр категорий:</label>
-  <select id="filter">
-    <option value="all">Все</option>
-    <option value="Полезные">Полезные</option>
-    <option value="Вредные">Вредные</option>
-  </select>
+    <!-- Экран входа -->
+    <div id="auth-screen">
+        <h1 style="margin-bottom: 20px;">ОПГРЕЙДОР</h1>
+        <div class="auth-card">
+            <input type="text" id="username" placeholder="Логин">
+            <input type="password" id="password" placeholder="Пароль">
+            <button class="main-btn" style="width: 100%;" onclick="login()">ВОЙТИ / РЕГА</button>
+        </div>
+    </div>
 
-  <script>
-    const filter = document.getElementById('filter');
-    filter.addEventListener('change', () => {
-      const rows = document.querySelectorAll('table tr');
-      rows.forEach((row, i) => {
-        if (i === 0) return;
-        const category = row.children[0].innerText.trim();
-        row.style.display = (filter.value === 'all' || filter.value === category) ? '' : 'none';
-      });
-    });
-  </script>
+    <!-- Основной интерфейс (скрыт до входа) -->
+    <div id="main-ui" style="display: none;">
+        <header>
+            <div class="logo-group">
+                <div class="nav-btn" onclick="showScreen('main')">🎲</div>
+                <div class="nav-btn" onclick="showScreen('shop')">🛒</div>
+            </div>
+            <div class="profile-group">
+                <div class="balance"><span id="user-balance">0</span> ₴</div>
+                <div class="avatar" onclick="showScreen('profile')"></div>
+            </div>
+        </header>
+
+        <h1 class="main-title">ОПГРЕЙДОР</h1>
+
+        <!-- Экран Рулетки -->
+        <section id="screen-main" class="upgrade-container">
+            <div class="wheel-wrapper">
+                <div id="wheel-fill" style="height: 10%;"></div>
+                <div class="percent-display" id="current-percent">10%</div>
+                <div id="cursor"></div>
+            </div>
+
+            <button class="main-btn" id="upgrade-btn" onclick="startUpgrade()">ПРОКАЧАТЬ</button>
+
+            <div class="quick-odds">
+                <button class="odd-btn" onclick="setChance(35)">x2 | 35%</button>
+                <button class="odd-btn" onclick="setChance(55)">x4 | 55%</button>
+                <button class="odd-btn" onclick="setChance(75)">x8 | 75%</button>
+            </div>
+
+            <div class="inventory-section" style="width: 100%;">
+                <h3>ИНВЕНТАРЬ (выбери предмет)</h3>
+                <div id="main-inventory" class="grid"></div>
+            </div>
+        </section>
+
+        <!-- Экран Магазина -->
+        <section id="screen-shop" class="inventory-section" style="display:none;">
+            <h2>МАГАЗИН ХЛАМА</h2>
+            <div id="shop-grid" class="grid"></div>
+            <button class="main-btn" onclick="buySelected()">КУПИТЬ ВЫБРАННОЕ</button>
+        </section>
+
+        <!-- Экран Профиля -->
+        <section id="screen-profile" class="inventory-section" style="display:none;">
+            <h2>МОЙ ПРОФИЛЬ</h2>
+            <div id="stats" style="margin: 20px 0; line-height: 2;"></div>
+            <div style="display: flex; gap: 10px;">
+                <button class="odd-btn" onclick="sellSelected()">ПРОДАТЬ ВЫБРАННОЕ (<span id="sell-count">0</span>)</button>
+                <button class="odd-btn" onclick="sellAll()">ПРОДАТЬ ВСЕ</button>
+            </div>
+            <div id="profile-inventory" class="grid"></div>
+        </section>
+    </div>
+
+    <script>
+        // Данные
+        const itemNames = ["Сифилис", "Герпес", "Почка соседа", "Девственность", "Левое яйцо", "Печень алкоголика", "Мамкина заначка", "Хвост бобра", "Золотой зуб", "Мозг хлебушка"];
+        let user = {
+            name: "",
+            balance: 1000,
+            inventory: [],
+            stats: { upgrades: 0, lost: 0, best: { name: "-", price: 0 } }
+        };
+
+        let currentChance = 10;
+        let selectedItems = new Set();
+        let isSpinning = false;
+
+        // Логика входа
+        function login() {
+            const name = document.getElementById('username').value;
+            if (!name) return alert("Введи имя, лудоман!");
+            
+            const saved = localStorage.getItem('user_' + name);
+            if (saved) {
+                user = JSON.parse(saved);
+            } else {
+                user.name = name;
+                user.inventory = [
+                    { id: 1, name: "Твои яйца", price: 150 },
+                    { id: 2, name: "Девственность", price: 300 },
+                    { id: 3, name: "Хромосома", price: 50 }
+                ];
+            }
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('main-ui').style.display = 'block';
+            updateUI();
+        }
+
+        function save() {
+            localStorage.setItem('user_' + user.name, JSON.stringify(user));
+        }
+
+        // Интерфейс
+        function updateUI() {
+            document.getElementById('user-balance').innerText = Math.floor(user.balance);
+            renderInventory('main-inventory');
+            renderInventory('profile-inventory');
+            renderStats();
+            save();
+        }
+
+        function renderInventory(id) {
+            const container = document.getElementById(id);
+            container.innerHTML = '';
+            user.inventory.forEach(item => {
+                const card = document.createElement('div');
+                card.className = `item-card ${selectedItems.has(item.id) ? 'selected' : ''}`;
+                card.onclick = () => toggleSelect(item.id);
+                card.innerHTML = `<div>${item.name}</div><div class="item-price">${item.price} ₴</div>`;
+                container.appendChild(card);
+            });
+        }
+
+        function renderStats() {
+            document.getElementById('stats').innerHTML = `
+                Баланс: ${user.balance} ₴<br>
+                Апгрейдов сделано: ${user.stats.upgrades}<br>
+                Проиграно в сумме: ${user.stats.lost} ₴<br>
+                Лучшая прокачка: ${user.stats.best.name} (${user.stats.best.price} ₴)
+            `;
+            document.getElementById('sell-count').innerText = selectedItems.size;
+        }
+
+        function showScreen(screen) {
+            ['main', 'shop', 'profile'].forEach(s => document.getElementById('screen-' + s).style.display = 'none');
+            document.getElementById('screen-' + screen).style.display = 'block';
+            if (screen === 'shop') renderShop();
+            selectedItems.clear();
+            updateUI();
+        }
+
+        function toggleSelect(id) {
+            if (selectedItems.has(id)) selectedItems.delete(id);
+            else selectedItems.add(id);
+            updateUI();
+        }
+
+        // Логика рулетки
+        function setChance(c) { 
+            currentChance = c; 
+            document.getElementById('wheel-fill').style.height = c + '%';
+            document.getElementById('current-percent').innerText = c + '%';
+        }
+
+        function startUpgrade() {
+            if (isSpinning || selectedItems.size !== 1) return alert("Выбери ровно 1 предмет для апгрейда!");
+            
+            isSpinning = true;
+            document.getElementById('upgrade-btn').disabled = true;
+            
+            const cursor = document.getElementById('cursor');
+            const wheel = document.querySelector('.wheel-wrapper');
+            let rotation = 0;
+            let speed = 20;
+
+            const itemId = Array.from(selectedItems)[0];
+            const itemIndex = user.inventory.findIndex(i => i.id === itemId);
+            const item = user.inventory[itemIndex];
+
+            // Анимация кручения курсора по окружности
+            let start = Date.now();
+            const duration = 4000;
+
+            function animate() {
+                let elapsed = Date.now() - start;
+                let progress = elapsed / duration;
+                
+                // Замедление (easing)
+                let ease = 1 - Math.pow(1 - progress, 3);
+                let currentPos = ease * 3600; // 10 кругов
+
+                let angle = currentPos % 360;
+                let rad = (angle - 90) * (Math.PI / 180);
+                let x = 150 + 140 * Math.cos(rad);
+                let y = 150 + 140 * Math.sin(rad);
+                
+                cursor.style.left = x + 'px';
+                cursor.style.top = y + 'px';
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    finishUpgrade(angle, item, itemIndex);
+                }
+            }
+            animate();
+        }
+
+        function finishUpgrade(finalAngle, item, index) {
+            isSpinning = false;
+            document.getElementById('upgrade-btn').disabled = false;
+
+            // Зона выигрыша: так как наполнение снизу вверх, зона — это нижняя часть круга (180 градусов снизу)
+            // Упростим: если шанс 30%, то выиграл, если Random < 0.3
+            const win = Math.random() * 100 < currentChance;
+
+            if (win) {
+                const multiplier = (100 / currentChance);
+                const newPrice = Math.floor(item.price * multiplier);
+                const newItem = {
+                    id: Date.now(),
+                    name: "Апнутый " + item.name,
+                    price: newPrice
+                };
+                user.inventory.splice(index, 1, newItem);
+                if (newPrice > user.stats.best.price) {
+                    user.stats.best = { name: newItem.name, price: newPrice };
+                }
+                alert("УДАЧА! Теперь у тебя " + newItem.name);
+            } else {
+                user.stats.lost += item.price;
+                user.inventory.splice(index, 1);
+                alert("ЛУЗЕР! " + item.name + " удален.");
+            }
+            
+            user.stats.upgrades++;
+            selectedItems.clear();
+            updateUI();
+        }
+
+        // Магазин
+        function renderShop() {
+            const grid = document.getElementById('shop-grid');
+            grid.innerHTML = '';
+            for(let i=0; i<6; i++) {
+                const p = Math.floor(Math.random() * 500) + 50;
+                const n = itemNames[Math.floor(Math.random() * itemNames.length)];
+                const card = document.createElement('div');
+                card.className = 'item-card';
+                card.innerHTML = `<div>${n}</div><div class="item-price">${p} ₴</div>`;
+                card.onclick = () => {
+                    if (user.balance >= p) {
+                        if (confirm(`Купить ${n}?`)) {
+                            user.balance -= p;
+                            user.inventory.push({ id: Date.now(), name: n, price: p });
+                            updateUI();
+                        }
+                    } else alert("Иди работай, денег нет");
+                };
+                grid.appendChild(card);
+            }
+        }
+
+        function sellSelected() {
+            if (selectedItems.size === 0) return;
+            let sum = 0;
+            selectedItems.forEach(id => {
+                const idx = user.inventory.findIndex(i => i.id === id);
+                sum += user.inventory[idx].price;
+            });
+
+            if (confirm(`Продать выбранное (${selectedItems.size} шт) за ${sum} ₴?`)) {
+                user.inventory = user.inventory.filter(i => !selectedItems.has(i.id));
+                user.balance += sum;
+                selectedItems.clear();
+                updateUI();
+            }
+        }
+
+        function sellAll() {
+            let sum = user.inventory.reduce((a, b) => a + b.price, 0);
+            if (confirm(`Продать ВСЁ за ${sum} ₴?`)) {
+                user.inventory = [];
+                user.balance += sum;
+                selectedItems.clear();
+                updateUI();
+            }
+        }
+    </script>
 </body>
 </html>
