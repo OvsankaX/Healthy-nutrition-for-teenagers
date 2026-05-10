@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UPGRADOR V25.2 Justice</title>
+    <title>UPGRADOR V25.3 - SMOOTH</title>
     <style>
         :root {
             --bg: #0a0a0a; --panel: #161616; --accent: #a020f0;
@@ -269,11 +269,10 @@
         }
         function setM(m, id) { setChance(Math.floor(100/m), id); }
 
-        // --- ИСПРАВЛЕННЫЙ БЛОК АНИМАЦИИ ---
+        // --- ИДЕАЛЬНО ПЛАВНАЯ АНИМАЦИЯ ---
         function startSpin() {
             if(spinning || selected.size !== 1) return;
             
-            // Мгновенная блокировка
             spinning = true;
             document.getElementById('go-btn').disabled = true;
             document.querySelectorAll('.x-ctrl').forEach(b => b.disabled = true);
@@ -290,24 +289,22 @@
 
                 function animate(now) {
                     if(!start) start = now;
-                    let t = (now - start) / dur;
+                    const t = Math.min((now - start) / dur, 1);
                     
-                    if (t >= 1) {
-                        currentRot = sAng + totalRot;
-                        document.getElementById('cursor-wrapper').style.transform = `rotate(${currentRot}deg)`;
-                        finish(currentRot % 360, item);
-                        return;
-                    }
-                    
-                    // Плавный разгон (t^3) и сверх-долгое торможение (1-(1-t)^5)
-                    let ease = t < 0.2 
-                        ? (t * 5) * (t * 5) * (t * 5) * 0.2 // Разгон первые 20% времени
-                        : 1 - Math.pow(1 - t, 5); // Докатка остальные 80%
+                    // Одна формула для всего пути: Плавный вход -> Быстрая середина -> Очень длинный выход
+                    // Используем кубическую кривую Безье (приблизительно)
+                    const ease = t < 0.2 
+                        ? 2.5 * t * t  // Плавный разгон
+                        : 1 - Math.pow(1 - t, 4); // Длинная тягучая докатка
                     
                     currentRot = sAng + (ease * totalRot);
                     document.getElementById('cursor-wrapper').style.transform = `rotate(${currentRot}deg)`;
                     
-                    requestAnimationFrame(animate);
+                    if(t < 1) {
+                        requestAnimationFrame(animate);
+                    } else {
+                        finish(currentRot % 360, item);
+                    }
                 }
                 requestAnimationFrame(animate);
             }, 500);
@@ -319,7 +316,6 @@
             document.querySelectorAll('.x-ctrl').forEach(b => b.disabled = false);
             
             const winSize = (chance / 100) * 360;
-            // Хитбокс соответствует визуальной палочке (1.5 градуса)
             const win = (deg >= (180 - winSize/2 - 1.5) && deg <= (180 + winSize/2 + 1.5));
             
             const msg = document.getElementById('status-msg');
@@ -337,7 +333,6 @@
             selected.clear(); 
             update();
         }
-        // --- КОНЕЦ ИСПРАВЛЕННОГО БЛОКА ---
 
         function openModal(text, action) {
             document.getElementById('modal-text').innerText = text;
