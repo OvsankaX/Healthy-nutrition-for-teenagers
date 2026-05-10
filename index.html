@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UPGRADOR V25.3 - SMOOTH</title>
+    <title>UPGRADOR V25.4 - FINAL SMOOTH</title>
     <style>
         :root {
             --bg: #0a0a0a; --panel: #161616; --accent: #a020f0;
@@ -269,7 +269,7 @@
         }
         function setM(m, id) { setChance(Math.floor(100/m), id); }
 
-        // --- ИДЕАЛЬНО ПЛАВНАЯ АНИМАЦИЯ ---
+        // --- ФИНАЛЬНАЯ ГЛАДКАЯ АНИМАЦИЯ ---
         function startSpin() {
             if(spinning || selected.size !== 1) return;
             
@@ -283,28 +283,29 @@
             
             setTimeout(() => {
                 let start = null;
-                const dur = 5500; 
+                const dur = 6000; // Немного увеличил время для эпичности
                 const totalRot = 1800 + (Math.random() * 360); 
                 const sAng = currentRot;
 
                 function animate(now) {
                     if(!start) start = now;
-                    const t = Math.min((now - start) / dur, 1);
+                    let t = (now - start) / dur;
                     
-                    // Одна формула для всего пути: Плавный вход -> Быстрая середина -> Очень длинный выход
-                    // Используем кубическую кривую Безье (приблизительно)
-                    const ease = t < 0.2 
-                        ? 2.5 * t * t  // Плавный разгон
-                        : 1 - Math.pow(1 - t, 4); // Длинная тягучая докатка
+                    if (t >= 1) {
+                        currentRot = sAng + totalRot;
+                        document.getElementById('cursor-wrapper').style.transform = `rotate(${currentRot}deg)`;
+                        finish(currentRot % 360, item);
+                        return;
+                    }
+                    
+                    // Единая математическая кривая (Quintic Ease Out)
+                    // Плавный набор и супер-плавное затухание без рывков
+                    let ease = 1 - Math.pow(1 - t, 5); 
                     
                     currentRot = sAng + (ease * totalRot);
                     document.getElementById('cursor-wrapper').style.transform = `rotate(${currentRot}deg)`;
                     
-                    if(t < 1) {
-                        requestAnimationFrame(animate);
-                    } else {
-                        finish(currentRot % 360, item);
-                    }
+                    requestAnimationFrame(animate);
                 }
                 requestAnimationFrame(animate);
             }, 500);
