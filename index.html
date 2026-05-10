@@ -172,13 +172,6 @@
         .win-glow  { color: var(--win);  text-shadow: 0 0 20px var(--win),  0 0 40px var(--win); }
         .loss-glow { color: var(--loss); text-shadow: 0 0 20px var(--loss), 0 0 40px rgba(248,113,113,0.4); }
         #p-shop h3 { margin-bottom: 15px; text-align: center; }
-        
-        /* фикс для стрелки на телефоне - убираем гостинг */
-        #cursor-line {
-            will-change: transform;
-            backface-visibility: hidden;
-            transform: translateZ(0);
-        }
     </style>
 </head>
 <body>
@@ -222,12 +215,12 @@
                         <div id="status-msg"></div>
                     </div>
                 </div>
-                <!-- Стрелка курсора - фикс гостинга на телефоне (CSS треугольник вместо SVG) -->
-                <div id="cursor-arrow" style="position:absolute; top:0; left:0; width:240px; height:240px; z-index:20; pointer-events:none;">
-                    <div style="position:absolute; top:-8px; left:50%; transform:translateX(-50%);">
-                        <div id="cursor-line" style="width:0; height:0; border-left:10px solid transparent; border-right:10px solid transparent; border-bottom:28px solid white; filter:drop-shadow(0 0 2px #fff) drop-shadow(0 0 3px #a855f7); transform-origin: 10px 28px; transform:rotate(0deg);"></div>
-                    </div>
-                </div>
+                <!-- Стрелка курcора с улучшенным свечением -->
+<div id="cursor-arrow" style="position:absolute; top:0; left:0; width:240px; height:240px; z-index:20; pointer-events:none;">
+    <div style="position:absolute; top:-8px; left:50%; transform:translateX(-50%);">
+        <div id="cursor-line" style="width:0; height:0; border-left:12px solid transparent; border-right:12px solid transparent; border-bottom:30px solid white; filter:drop-shadow(0 0 2px #fff) drop-shadow(0 0 4px #a855f7); transform-origin: 12px 30px; transform:rotate(0deg);"></div>
+    </div>
+</div>
             </div>
         </div>
         <div class="btn-row">
@@ -357,19 +350,11 @@ function animateDonut(target) {
 }
 drawDonutRaw(10);
 
-// СТРЕЛКА (курсор) - ФИКС ГОСТИНГА НА ТЕЛЕФОНЕ
-const cursorLineElem = document.getElementById('cursor-line');
+// СТРЕЛКА (курсор) с плавным вращением и свечением
+const cursorLine = document.getElementById('cursor-line-svg');
 let cursorCurrentDeg = 0;
-let lastRenderDeg = -999;
-
-function setCursorDeg(deg) {
-    // округляем и применяем только при реальном изменении
-    const roundedDeg = Math.round(deg);
-    if (lastRenderDeg === roundedDeg) return;
-    lastRenderDeg = roundedDeg;
-    cursorLineElem.style.transform = `rotate(${roundedDeg}deg)`;
-    // форсируем перерисовку на мобильных устройствах
-    void cursorLineElem.offsetHeight;
+function setCursorDeg(deg) { 
+    cursorLine.style.transform = `rotate(${deg}deg)`; 
 }
 
 // Частицы (взрыв)
@@ -481,6 +466,7 @@ function login(){
     const saved=localStorage.getItem('upg_v25_'+n);
     if(saved) user=JSON.parse(saved); else{ user.name=n; user.inv=[{id:1,n:"Кейс",p:100}]; user.stats={ups:0,lost:0,earned:0}; }
     document.getElementById('auth-screen').style.display='none';
+    // добавляем баланс и статы, если их нет в старом сохранении
     if(user.stats===undefined) user.stats={ups:0,lost:0,earned:0};
     if(user.bal===undefined) user.bal=1000;
     update();
@@ -592,6 +578,7 @@ function finish(deg,item){
     spinning=false; user.stats.ups++;
     document.querySelectorAll('.x-ctrl').forEach(b=>b.disabled=false);
     const winSize=(chance/100)*360;
+    // зона победы: центр в 180 градусах
     const win=(deg>=(180-winSize/2-1.0) && deg<=(180+winSize/2+1.0));
     const msg=document.getElementById('status-msg');
     if(win){
@@ -604,6 +591,7 @@ function finish(deg,item){
     } else {
         user.stats.lost+=item.p;
         user.inv=user.inv.filter(x=>x.id!==item.id);
+        // ИЗМЕНЕНИЕ: НЕУДАЧА → НЕ БЕДА
         msg.innerText="НЕ БЕДА"; msg.className="loss-glow";
     }
     selected.clear(); update();
@@ -667,7 +655,9 @@ function showPage(p){
     }
     currentPage=p; selected.clear(); update();
 }
+// Инициализация
 window.onload = () => {
+    // автостарт анимации частиц
     updateParticles();
 }
 </script>
