@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UPGRADOR V10 JUSTICE</title>
+    <title>UPGRADOR V11 CENTERED</title>
     <style>
         :root {
             --bg: #0a0a0a;
@@ -31,13 +31,19 @@
         .nav-btn { font-size: 1.5rem; cursor: pointer; z-index: 10; }
         .balance-box { margin-left: auto; display: flex; align-items: center; gap: 8px; font-weight: bold; z-index: 10; }
 
-        main { flex-grow: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; align-items: center; }
-        .container { display: none; width: 100%; max-width: 450px; margin: 0 auto; }
+        /* ИСПРАВЛЕННАЯ ЦЕНТРОВКА */
+        main { flex-grow: 1; display: grid; place-items: center; overflow-y: auto; padding: 10px; }
+        .container { display: none; width: 100%; max-width: 420px; }
+        
+        .upgrade-section { 
+            display: flex; flex-direction: column; align-items: center; width: 100%; 
+            justify-content: center;
+        }
 
         .wheel-container { 
-            position: relative; width: 270px; height: 270px; margin: 20px 0; 
+            position: relative; width: 260px; height: 260px; margin: 10px 0; 
             border-radius: 50%; border: 10px solid #1a1a1a; background: #000; overflow: hidden;
-            box-shadow: 0 0 40px rgba(0,0,0,0.8);
+            box-shadow: 0 0 40px rgba(0,0,0,0.8); flex-shrink: 0;
         }
         #wheel-fill { 
             position: absolute; bottom: 0; width: 100%; background: var(--accent); 
@@ -45,30 +51,30 @@
             transition: height 0.6s cubic-bezier(0.17, 0.84, 0.44, 1);
         }
         
-        #cursor-wrapper { position: absolute; inset: 0; z-index: 20; transform: rotate(0deg); }
+        #cursor-wrapper { position: absolute; inset: 0; z-index: 20; }
         #cursor-line { 
-            position: absolute; top: 10px; left: 50%; width: 5px; height: 25px; 
+            position: absolute; top: 8px; left: 50%; width: 5px; height: 25px; 
             background: #fff; border-radius: 10px; transform: translateX(-50%); 
             box-shadow: 0 0 15px #fff; 
         }
 
         .center-stat { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; z-index: 5; pointer-events: none; }
-        #status-msg { height: 35px; font-size: 1.4rem; font-weight: 900; margin-top: 10px; }
+        #status-msg { height: 35px; font-size: 1.4rem; font-weight: 900; margin-top: 5px; }
         .win-glow { color: var(--win) !important; text-shadow: 0 0 20px var(--win); }
         .loss-glow { color: var(--loss) !important; text-shadow: 0 0 20px var(--loss); }
 
-        .btn-row { display: flex; width: 100%; gap: 8px; margin-bottom: 8px; }
-        .opt-btn { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 12px 5px; border-radius: 10px; flex: 1; font-weight: bold; transition: 0.2s; }
-        .opt-btn.active { background: var(--accent); border-color: #fff; box-shadow: 0 0 15px var(--accent-glow); }
+        .btn-row { display: flex; width: 100%; gap: 6px; margin-bottom: 6px; }
+        .opt-btn { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 10px 2px; border-radius: 10px; flex: 1; font-weight: bold; font-size: 0.9rem; }
+        .opt-btn.active { background: var(--accent); border-color: #fff; box-shadow: 0 0 10px var(--accent-glow); }
 
-        .action-btn { width: 100%; padding: 18px; background: var(--accent); border: none; border-radius: var(--radius); color: #fff; font-size: 1.2rem; font-weight: 900; box-shadow: 0 5px 15px var(--accent-glow); margin-top: 10px; }
+        .action-btn { width: 100%; padding: 16px; background: var(--accent); border: none; border-radius: var(--radius); color: #fff; font-size: 1.1rem; font-weight: 900; box-shadow: 0 5px 15px var(--accent-glow); margin-top: 5px; }
         
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; width: 100%; }
-        .item-frame { border: 2px solid #222; border-radius: var(--radius); padding: 15px; background: var(--panel); text-align: center; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; width: 100%; }
+        .item-frame { border: 2px solid #222; border-radius: var(--radius); padding: 12px; background: var(--panel); text-align: center; }
         .item-frame.selected { border-color: var(--accent); background: #1e0a2e; }
-        .price { color: var(--win); font-weight: bold; margin-top: 5px; }
+        .price { color: var(--win); font-weight: bold; margin-top: 4px; }
 
-        #custom-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 3000; align-items: center; justify-content: center; padding: 20px; }
+        #custom-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 3000; align-items: center; justify-content: center; padding: 20px; }
         #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 4000; display: flex; align-items: center; justify-content: center; }
         canvas#p-canvas { position: absolute; inset: 0; z-index: 15; pointer-events: none; }
     </style>
@@ -76,20 +82,20 @@
 <body>
 
     <div id="auth-screen">
-        <div style="background:var(--panel); padding:30px; border-radius:15px; border:1px solid var(--accent); width:300px; text-align:center;">
-            <h1 style="color:var(--accent); margin-bottom:15px;">LOGIN</h1>
-            <input type="text" id="user-in" placeholder="Логин..." style="width:100%; padding:12px; background:#000; border:1px solid #333; color:#fff; border-radius:8px; margin-bottom:15px; outline:none;">
-            <button class="action-btn" onclick="login()">ИГРАТЬ</button>
+        <div style="background:var(--panel); padding:30px; border-radius:15px; border:1px solid var(--accent); width:280px; text-align:center;">
+            <h1 style="color:var(--accent); margin-bottom:15px; letter-spacing:1px;">LOGIN</h1>
+            <input type="text" id="user-in" placeholder="Твой ник..." style="width:100%; padding:12px; background:#000; border:1px solid #333; color:#fff; border-radius:8px; margin-bottom:15px; outline:none;">
+            <button class="action-btn" onclick="login()">ВОЙТИ</button>
         </div>
     </div>
 
     <div id="custom-modal">
-        <div style="background:var(--panel); border:1px solid var(--accent); padding:25px; border-radius:12px; width:100%; max-width:320px; text-align:center;">
-            <h3 id="modal-title" style="margin-bottom:10px;">Подтверждение</h3>
+        <div style="background:var(--panel); border:1px solid var(--accent); padding:25px; border-radius:12px; width:100%; max-width:300px; text-align:center;">
+            <h3 id="modal-title" style="margin-bottom:10px;">Продажа</h3>
             <p id="modal-desc" style="margin-bottom:20px; color:#bbb;"></p>
             <div style="display:flex; gap:10px;">
                 <button class="opt-btn" onclick="closeModal()">ОТМЕНА</button>
-                <button class="opt-btn" style="background:var(--accent);" id="modal-confirm">ПРОДАТЬ</button>
+                <button class="opt-btn" style="background:var(--accent);" id="modal-confirm">ДА</button>
             </div>
         </div>
     </div>
@@ -111,7 +117,7 @@
                     <div id="wheel-fill" style="height: 10%;"></div>
                     <div id="cursor-wrapper"><div id="cursor-line"></div></div>
                     <div class="center-stat">
-                        <h2 id="pct-view" style="font-size: 3rem; font-weight: 900;">10%</h2>
+                        <h2 id="pct-view" style="font-size: 2.8rem; font-weight: 900;">10%</h2>
                         <div id="status-msg"></div>
                     </div>
                 </div>
@@ -131,10 +137,10 @@
         </div>
 
         <div id="p-shop" class="container">
-            <h2>МАГАЗИН ХЛАМА</h2>
-            <div style="display:flex; gap:10px; margin:15px 0;">
-                <input type="number" id="budget" placeholder="Сумма..." style="flex:1; padding:12px; background:#000; border:1px solid #333; color:#fff; border-radius:8px; outline:none;">
-                <button class="opt-btn" style="flex:0.5;" onclick="refreshShop()">ПОИСК</button>
+            <h2 style="margin-bottom:10px;">МАГАЗИН</h2>
+            <div style="display:flex; gap:8px; margin-bottom:10px;">
+                <input type="number" id="budget" placeholder="Цена от..." style="flex:1; padding:12px; background:#000; border:1px solid #333; color:#fff; border-radius:8px; outline:none;">
+                <button class="opt-btn" style="flex:0.4;" onclick="refreshShop()">ПОИСК</button>
             </div>
             <div id="shop-grid" class="grid"></div>
             <button class="action-btn" onclick="buySelected()">КУПИТЬ ВЫБРАННОЕ</button>
@@ -142,7 +148,7 @@
 
         <div id="p-profile" class="container">
             <h2>ПРОФИЛЬ</h2>
-            <div id="stat-box" style="background:#111; padding:20px; border-radius:12px; margin:15px 0; border:1px solid #222; line-height:2;"></div>
+            <div id="stat-box" style="background:#111; padding:15px; border-radius:12px; margin:15px 0; border:1px solid #222; font-size:0.9rem; line-height:1.8;"></div>
             <div class="btn-row">
                 <button class="opt-btn" onclick="openSellModal('selected')">ПРОДАТЬ ВЫБРАННОЕ</button>
                 <button class="opt-btn" onclick="openSellModal('all')">ПРОДАТЬ ВСЁ</button>
@@ -152,14 +158,14 @@
     </main>
 
     <script>
-        const ITEMS_POOL = ["Сердце бывшего", "Золотой зуб", "Мозг хлебушка", "Почка соседа", "Печень алкоголика", "Хромосома", "Заначка", "Сифилис", "Герпес"];
+        const ITEMS_POOL = ["Сердце бывшего", "Золотой зуб", "Мозг хлебушка", "Почка соседа", "Печень алкоголика", "Хромосома", "Заначка", "Сифилис", "Герпес", "Левое яйцо"];
         let user = { name: "", bal: 1000, inv: [], stats: { ups: 0, lost: 0, earned: 0, best: {n: "-", p: 0} } };
         let chance = 10, selected = new Set(), spinning = false, currentRot = 0;
 
         function login() {
             const n = document.getElementById('user-in').value;
             if(!n) return;
-            const s = localStorage.getItem('upg_v10_'+n);
+            const s = localStorage.getItem('upg_v11_'+n);
             if(s) user = JSON.parse(s);
             else { user.name = n; user.inv = [{id:1, n:"Твои яйца", p:100}]; }
             document.getElementById('auth-screen').style.display='none';
@@ -171,19 +177,13 @@
             renderInv('inv-main', true);
             renderInv('inv-prof', false);
             renderStats();
-            localStorage.setItem('upg_v10_'+user.name, JSON.stringify(user));
+            localStorage.setItem('upg_v11_'+user.name, JSON.stringify(user));
         }
 
         function renderStats() {
             const box = document.getElementById('stat-box');
             if(!box) return;
-            box.innerHTML = `
-                👤 Игрок: <b>${user.name}</b><br>
-                📊 Сделок: ${user.stats.ups}<br>
-                💸 Слито: <span style="color:var(--loss)">${user.stats.lost} ₴</span><br>
-                📈 Прибыль: <span style="color:var(--win)">${user.stats.earned} ₴</span><br>
-                🏆 Топ дроп: <b>${user.stats.best.n}</b> (${user.stats.best.p} ₴)
-            `;
+            box.innerHTML = `👤 Игрок: <b>${user.name}</b><br>📊 Апгрейдов: ${user.stats.ups}<br>💸 Слито: <span style="color:var(--loss)">${user.stats.lost} ₴</span><br>📈 Прибыль: <span style="color:var(--win)">${user.stats.earned} ₴</span><br>🏆 Лучший дроп: <b>${user.stats.best.n}</b> (${user.stats.best.p} ₴)`;
         }
 
         function renderInv(id, single) {
@@ -240,12 +240,9 @@
 
         function finish(deg, item, idx) {
             spinning = false; document.getElementById('go-btn').disabled = false;
-            
-            // ПОВЫШЕННАЯ СПРАВЕДЛИВОСТЬ: +2 градуса форы
             const zoneSize = (chance / 100) * 360;
-            const startZone = 180 - (zoneSize / 2) - 2;
+            const startZone = 180 - (zoneSize / 2) - 2; // +2 градуса форы
             const endZone = 180 + (zoneSize / 2) + 2;
-            
             const win = (deg >= startZone && deg <= endZone);
             const msg = document.getElementById('status-msg');
             
@@ -274,7 +271,7 @@
                 document.getElementById('modal-confirm').onclick = () => { sellSelected(); closeModal(); };
             } else {
                 sum = user.inv.reduce((a,b)=>a+b.p, 0);
-                desc.innerText = `Продать всё (${user.inv.length} шт.) за ${sum} ₴?`;
+                desc.innerText = `Продать всё за ${sum} ₴?`;
                 document.getElementById('modal-confirm').onclick = () => { sellAll(); closeModal(); };
             }
             modal.style.display = 'flex';
@@ -288,7 +285,7 @@
             const b = parseInt(document.getElementById('budget').value) || 10;
             sItems = [];
             for(let i=0; i<6; i++) {
-                const price = Math.floor(b + (Math.random() * (b * 0.5)));
+                const price = Math.floor(b + (Math.random() * (b * 0.3)));
                 sItems.push({id:'s'+i, n: ITEMS_POOL[Math.floor(Math.random()*ITEMS_POOL.length)], p: price});
             }
             const g = document.getElementById('shop-grid'); g.innerHTML = '';
@@ -310,10 +307,10 @@
 
         function boom() {
             const canvas = document.getElementById('p-canvas'); const ctx = canvas.getContext('2d');
-            canvas.width = 270; canvas.height = 270; let parts = [];
-            for(let i=0; i<60; i++) parts.push({x:135, y:135, vx:(Math.random()-0.5)*7, vy:(Math.random()-0.5)*7, r:Math.random()*2+1, l:1});
+            canvas.width = 260; canvas.height = 260; let parts = [];
+            for(let i=0; i<60; i++) parts.push({x:130, y:130, vx:(Math.random()-0.5)*7, vy:(Math.random()-0.5)*7, r:Math.random()*2+1, l:1});
             function d() {
-                ctx.clearRect(0,0,270,270);
+                ctx.clearRect(0,0,260,260);
                 parts.forEach((p, i) => { p.x += p.vx; p.y += p.vy; p.l -= 0.015; ctx.fillStyle = `rgba(160, 32, 240, ${p.l})`; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 7); ctx.fill(); if(p.l<=0) parts.splice(i,1); });
                 if(parts.length>0) requestAnimationFrame(d);
             } d();
