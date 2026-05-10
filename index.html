@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UPGRADOR V9 PRECISE</title>
+    <title>UPGRADOR V10 JUSTICE</title>
     <style>
         :root {
             --bg: #0a0a0a;
@@ -34,8 +34,6 @@
         main { flex-grow: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; align-items: center; }
         .container { display: none; width: 100%; max-width: 450px; margin: 0 auto; }
 
-        /* Центрирование рулетки */
-        .upgrade-section { display: flex; flex-direction: column; align-items: center; width: 100%; }
         .wheel-container { 
             position: relative; width: 270px; height: 270px; margin: 20px 0; 
             border-radius: 50%; border: 10px solid #1a1a1a; background: #000; overflow: hidden;
@@ -80,18 +78,18 @@
     <div id="auth-screen">
         <div style="background:var(--panel); padding:30px; border-radius:15px; border:1px solid var(--accent); width:300px; text-align:center;">
             <h1 style="color:var(--accent); margin-bottom:15px;">LOGIN</h1>
-            <input type="text" id="user-in" placeholder="Никнейм..." style="width:100%; padding:12px; background:#000; border:1px solid #333; color:#fff; border-radius:8px; margin-bottom:15px; outline:none;">
-            <button class="action-btn" onclick="login()">ВОЙТИ</button>
+            <input type="text" id="user-in" placeholder="Логин..." style="width:100%; padding:12px; background:#000; border:1px solid #333; color:#fff; border-radius:8px; margin-bottom:15px; outline:none;">
+            <button class="action-btn" onclick="login()">ИГРАТЬ</button>
         </div>
     </div>
 
     <div id="custom-modal">
         <div style="background:var(--panel); border:1px solid var(--accent); padding:25px; border-radius:12px; width:100%; max-width:320px; text-align:center;">
-            <h3 id="modal-title" style="margin-bottom:10px;">Продажа</h3>
+            <h3 id="modal-title" style="margin-bottom:10px;">Подтверждение</h3>
             <p id="modal-desc" style="margin-bottom:20px; color:#bbb;"></p>
             <div style="display:flex; gap:10px;">
                 <button class="opt-btn" onclick="closeModal()">ОТМЕНА</button>
-                <button class="opt-btn" style="background:var(--accent);" id="modal-confirm">ДА</button>
+                <button class="opt-btn" style="background:var(--accent);" id="modal-confirm">ПРОДАТЬ</button>
             </div>
         </div>
     </div>
@@ -133,9 +131,9 @@
         </div>
 
         <div id="p-shop" class="container">
-            <h2>МАГАЗИН</h2>
+            <h2>МАГАЗИН ХЛАМА</h2>
             <div style="display:flex; gap:10px; margin:15px 0;">
-                <input type="number" id="budget" placeholder="Цена от..." style="flex:1; padding:12px; background:#000; border:1px solid #333; color:#fff; border-radius:8px; outline:none;">
+                <input type="number" id="budget" placeholder="Сумма..." style="flex:1; padding:12px; background:#000; border:1px solid #333; color:#fff; border-radius:8px; outline:none;">
                 <button class="opt-btn" style="flex:0.5;" onclick="refreshShop()">ПОИСК</button>
             </div>
             <div id="shop-grid" class="grid"></div>
@@ -154,14 +152,14 @@
     </main>
 
     <script>
-        const ITEMS_POOL = ["Сердце бывшего", "Золотой зуб", "Мозг хлебушка", "Почка соседа", "Печень алкоголика", "Хромосома", "Мамкина заначка", "Левое яйцо", "Сифилис", "Герпес"];
+        const ITEMS_POOL = ["Сердце бывшего", "Золотой зуб", "Мозг хлебушка", "Почка соседа", "Печень алкоголика", "Хромосома", "Заначка", "Сифилис", "Герпес"];
         let user = { name: "", bal: 1000, inv: [], stats: { ups: 0, lost: 0, earned: 0, best: {n: "-", p: 0} } };
         let chance = 10, selected = new Set(), spinning = false, currentRot = 0;
 
         function login() {
             const n = document.getElementById('user-in').value;
             if(!n) return;
-            const s = localStorage.getItem('upg_v9_'+n);
+            const s = localStorage.getItem('upg_v10_'+n);
             if(s) user = JSON.parse(s);
             else { user.name = n; user.inv = [{id:1, n:"Твои яйца", p:100}]; }
             document.getElementById('auth-screen').style.display='none';
@@ -173,13 +171,19 @@
             renderInv('inv-main', true);
             renderInv('inv-prof', false);
             renderStats();
-            localStorage.setItem('upg_v9_'+user.name, JSON.stringify(user));
+            localStorage.setItem('upg_v10_'+user.name, JSON.stringify(user));
         }
 
         function renderStats() {
             const box = document.getElementById('stat-box');
             if(!box) return;
-            box.innerHTML = `👤 Игрок: <b>${user.name}</b><br>📊 Апгрейдов: ${user.stats.ups}<br>💸 Слито: <span style="color:var(--loss)">${user.stats.lost} ₴</span><br>📈 Прибыль: <span style="color:var(--win)">${user.stats.earned} ₴</span><br>🏆 Лучший: ${user.stats.best.n}`;
+            box.innerHTML = `
+                👤 Игрок: <b>${user.name}</b><br>
+                📊 Сделок: ${user.stats.ups}<br>
+                💸 Слито: <span style="color:var(--loss)">${user.stats.lost} ₴</span><br>
+                📈 Прибыль: <span style="color:var(--win)">${user.stats.earned} ₴</span><br>
+                🏆 Топ дроп: <b>${user.stats.best.n}</b> (${user.stats.best.p} ₴)
+            `;
         }
 
         function renderInv(id, single) {
@@ -237,11 +241,10 @@
         function finish(deg, item, idx) {
             spinning = false; document.getElementById('go-btn').disabled = false;
             
-            // НОВАЯ ТОЧНАЯ МАТЕМАТИКА
-            // Фиолетовая зона всегда внизу. Если шанс 25%, это от 135 до 225 градусов.
+            // ПОВЫШЕННАЯ СПРАВЕДЛИВОСТЬ: +2 градуса форы
             const zoneSize = (chance / 100) * 360;
-            const startZone = 180 - (zoneSize / 2);
-            const endZone = 180 + (zoneSize / 2);
+            const startZone = 180 - (zoneSize / 2) - 2;
+            const endZone = 180 + (zoneSize / 2) + 2;
             
             const win = (deg >= startZone && deg <= endZone);
             const msg = document.getElementById('status-msg');
@@ -271,7 +274,7 @@
                 document.getElementById('modal-confirm').onclick = () => { sellSelected(); closeModal(); };
             } else {
                 sum = user.inv.reduce((a,b)=>a+b.p, 0);
-                desc.innerText = `Продать ВСЕ за ${sum} ₴?`;
+                desc.innerText = `Продать всё (${user.inv.length} шт.) за ${sum} ₴?`;
                 document.getElementById('modal-confirm').onclick = () => { sellAll(); closeModal(); };
             }
             modal.style.display = 'flex';
@@ -282,11 +285,10 @@
 
         let sItems = [];
         function refreshShop() {
-            const b = parseInt(document.getElementById('budget').value) || 50;
+            const b = parseInt(document.getElementById('budget').value) || 10;
             sItems = [];
             for(let i=0; i<6; i++) {
-                // Точная цена: бюджет + небольшая наценка до 20%
-                const price = Math.floor(b + (Math.random() * (b * 0.2)));
+                const price = Math.floor(b + (Math.random() * (b * 0.5)));
                 sItems.push({id:'s'+i, n: ITEMS_POOL[Math.floor(Math.random()*ITEMS_POOL.length)], p: price});
             }
             const g = document.getElementById('shop-grid'); g.innerHTML = '';
@@ -319,3 +321,4 @@
     </script>
 </body>
 </html>
+
