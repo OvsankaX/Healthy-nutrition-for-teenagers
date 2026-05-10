@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UPGRADOR FINAL</title>
+    <title>UPGRADOR ULTIMATE</title>
     <style>
         :root {
             --bg: #0a0a0a;
             --panel: #161616;
             --accent: #a020f0;
-            --accent-glow: rgba(160, 32, 240, 0.5);
+            --accent-glow: rgba(160, 32, 240, 0.6);
             --white: #f0f0f0;
             --win: #00ff88;
             --loss: #ff3e3e;
@@ -19,76 +19,86 @@
         * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body { background: var(--bg); color: var(--white); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-        /* Auth */
-        #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .auth-card { background: var(--panel); padding: 30px; border-radius: var(--radius); border: 2px solid var(--accent); width: 100%; max-width: 340px; text-align: center; }
-        input { width: 100%; padding: 14px; margin: 10px 0; background: #000; border: 1px solid #333; color: #fff; border-radius: 8px; outline: none; }
-
-        /* Header */
-        header { height: 65px; background: #000; display: flex; justify-content: space-between; align-items: center; padding: 0 15px; border-bottom: 1px solid #222; flex-shrink: 0; }
-        .header-logo { font-weight: 900; font-size: 1.1rem; color: var(--accent); letter-spacing: 3px; cursor: pointer; text-transform: uppercase; }
-        .nav-btn { font-size: 1.5rem; cursor: pointer; }
-        .balance-box { display: flex; align-items: center; gap: 10px; font-weight: bold; font-size: 1.1rem; }
-
-        /* Custom Modal (Плашка) */
-        #custom-modal {
-            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); 
-            z-index: 3000; align-items: center; justify-content: center; padding: 20px;
+        /* Header Fix */
+        header { 
+            height: 65px; background: #000; display: flex; align-items: center; 
+            padding: 0 15px; border-bottom: 1px solid #222; flex-shrink: 0; position: relative;
         }
-        .modal-card { background: var(--panel); border: 1px solid var(--accent); padding: 25px; border-radius: var(--radius); width: 100%; max-width: 300px; text-align: center; }
-        
-        /* Layout */
-        main { flex-grow: 1; overflow-y: auto; padding: 15px; padding-bottom: 40px; }
-        .container { display: none; width: 100%; max-width: 480px; margin: 0 auto; }
+        .header-logo { 
+            position: absolute; left: 50%; transform: translateX(-50%);
+            font-weight: 900; font-size: 1.2rem; color: var(--accent); 
+            letter-spacing: 3px; cursor: pointer; text-transform: uppercase;
+            text-shadow: 0 0 10px var(--accent-glow);
+        }
+        .nav-btn { font-size: 1.5rem; cursor: pointer; z-index: 10; }
+        .balance-box { margin-left: auto; display: flex; align-items: center; gap: 8px; font-weight: bold; z-index: 10; }
 
-        /* Roulette */
-        .upgrade-section { display: flex; flex-direction: column; align-items: center; }
+        /* Roulette & Fill Animation */
         .wheel-container { 
             position: relative; width: 270px; height: 270px; margin: 15px 0; 
             border-radius: 50%; border: 10px solid #1a1a1a; background: #000; overflow: hidden;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
         }
-        #wheel-fill { position: absolute; bottom: 0; width: 100%; background: var(--accent); box-shadow: 0 0 50px var(--accent-glow); }
+        #wheel-fill { 
+            position: absolute; bottom: 0; width: 100%; background: var(--accent); 
+            box-shadow: 0 0 40px var(--accent-glow);
+            transition: height 0.6s cubic-bezier(0.23, 1, 0.32, 1); /* Плавное изменение шанса */
+        }
+        
         #cursor-wrapper { position: absolute; inset: 0; z-index: 20; }
-        #cursor-line { position: absolute; top: 8px; left: 50%; width: 5px; height: 28px; background: #fff; border-radius: 10px; transform: translateX(-50%); box-shadow: 0 0 15px #fff; }
-        .center-stat { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; z-index: 5; pointer-events: none; }
-        #status-msg { height: 24px; font-size: 1.2rem; font-weight: 900; margin-top: 5px; }
+        #cursor-line { 
+            position: absolute; top: 10px; left: 50%; width: 4px; height: 22px; 
+            background: #fff; border-radius: 10px; transform: translateX(-50%); 
+            box-shadow: 0 0 12px #fff; 
+        }
 
-        /* Buttons */
+        /* Status & Glow */
+        .center-stat { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; z-index: 5; pointer-events: none; }
+        #status-msg { 
+            height: 24px; font-size: 1.3rem; font-weight: 900; margin-top: 10px;
+            transition: 0.2s;
+        }
+        .win-glow { text-shadow: 0 0 15px var(--win), 0 0 5px #fff; }
+        .loss-glow { text-shadow: 0 0 15px var(--loss), 0 0 5px #fff; }
+
+        /* Modals & Buttons */
+        #custom-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 3000; align-items: center; justify-content: center; padding: 20px; }
+        .modal-card { background: var(--panel); border: 1px solid var(--accent); padding: 25px; border-radius: var(--radius); width: 100%; max-width: 320px; text-align: center; }
+        
+        main { flex-grow: 1; overflow-y: auto; padding: 15px; }
+        .container { display: none; width: 100%; max-width: 480px; margin: 0 auto; }
+
         .btn-row { display: flex; width: 100%; gap: 8px; margin-bottom: 8px; }
         .opt-btn { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 12px 5px; border-radius: 10px; flex: 1; font-weight: bold; }
         .action-btn { width: 100%; padding: 18px; background: var(--accent); border: none; border-radius: var(--radius); color: #fff; font-size: 1.2rem; font-weight: 900; box-shadow: 0 5px 15px var(--accent-glow); margin-top: 10px; }
-        .action-btn:disabled { opacity: 0.5; }
-
-        /* Inventory */
+        
         .item-frame { border: 2px solid #222; border-radius: var(--radius); padding: 15px; background: var(--panel); text-align: center; }
         .item-frame.selected { border-color: var(--accent); background: #1e0a2e; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
         .price { color: var(--win); font-weight: bold; }
-        .stats-card { background: #111; border-radius: var(--radius); padding: 20px; margin-bottom: 15px; border: 1px solid #222; line-height: 1.8; }
+        
         #p-canvas { position: absolute; inset: 0; z-index: 15; pointer-events: none; }
+        #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 4000; display: flex; align-items: center; justify-content: center; padding: 20px; }
     </style>
 </head>
 <body>
 
-    <!-- Модальное окно -->
-    <div id="custom-modal">
+    <div id="auth-screen">
         <div class="modal-card">
-            <h3 id="modal-title" style="margin-bottom: 15px;">Точно продать?</h3>
-            <p id="modal-desc" style="margin-bottom: 20px; color: #bbb; font-size: 0.9rem;"></p>
-            <div style="display: flex; gap: 10px;">
-                <button class="opt-btn" onclick="closeModal()">НЕТ</button>
-                <button class="opt-btn" style="background: var(--accent);" id="modal-confirm">ДА</button>
-            </div>
+            <h1 style="color:var(--accent); margin-bottom: 15px; text-shadow: 0 0 10px var(--accent-glow);">ВХОД</h1>
+            <input type="text" id="user-in" placeholder="Логин" style="width:100%; padding:12px; background:#000; border:1px solid #333; color:#fff; border-radius:8px; margin-bottom:10px; outline:none;">
+            <button class="action-btn" onclick="login()">НАЧАТЬ</button>
         </div>
     </div>
 
-    <!-- Регистрация -->
-    <div id="auth-screen">
-        <div class="auth-card">
-            <h1 style="color:var(--accent); margin-bottom: 15px;">ОПГРЕЙДОР</h1>
-            <input type="text" id="user-in" placeholder="Логин">
-            <input type="password" id="pass-in" placeholder="Пароль">
-            <button class="action-btn" onclick="login()">ИГРАТЬ</button>
+    <div id="custom-modal">
+        <div class="modal-card">
+            <h3 id="modal-title" style="margin-bottom: 10px;">Подтверждение</h3>
+            <p id="modal-desc" style="margin-bottom: 20px; color: #bbb;"></p>
+            <div style="display: flex; gap: 10px;">
+                <button class="opt-btn" onclick="closeModal()">ОТМЕНА</button>
+                <button class="opt-btn" style="background: var(--accent);" id="modal-confirm">ДА</button>
+            </div>
         </div>
     </div>
 
@@ -102,7 +112,6 @@
     </header>
 
     <main>
-        <!-- Главная -->
         <div id="p-main" class="container" style="display: block;">
             <div class="upgrade-section">
                 <div class="wheel-container">
@@ -110,7 +119,7 @@
                     <div id="wheel-fill" style="height: 10%;"></div>
                     <div id="cursor-wrapper"><div id="cursor-line"></div></div>
                     <div class="center-stat">
-                        <h2 id="pct-view" style="font-size: 2.8rem; font-weight: 900;">10%</h2>
+                        <h2 id="pct-view" style="font-size: 3rem; font-weight: 900; text-shadow: 0 0 10px rgba(0,0,0,0.5);">10%</h2>
                         <div id="status-msg"></div>
                     </div>
                 </div>
@@ -129,21 +138,15 @@
             </div>
         </div>
 
-        <!-- Магазин -->
         <div id="p-shop" class="container">
-            <h2 style="margin-bottom: 15px;">МАГАЗИН ХЛАМА</h2>
-            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                <input type="number" id="budget" placeholder="Сумма...">
-                <button class="opt-btn" style="flex: 0.4;" onclick="refreshShop()">ПОИСК</button>
-            </div>
+            <h2>МАГАЗИН</h2>
             <div id="shop-grid" class="grid"></div>
-            <button class="action-btn" onclick="buyAllSelected()">КУПИТЬ ВЫБРАННОЕ</button>
+            <button class="action-btn" onclick="buySelected()">КУПИТЬ</button>
         </div>
 
-        <!-- Профиль -->
         <div id="p-profile" class="container">
-            <h2 style="margin-bottom: 15px;">ПРОФИЛЬ</h2>
-            <div id="stat-box" class="stats-card"></div>
+            <h2>ПРОФИЛЬ</h2>
+            <div id="stat-box" class="stats-card" style="background:#111; padding:15px; border-radius:12px; margin:15px 0; border:1px solid #222;"></div>
             <div class="btn-row">
                 <button class="opt-btn" onclick="openSellModal('selected')">ПРОДАТЬ ВЫБРАННОЕ</button>
                 <button class="opt-btn" onclick="openSellModal('all')">ПРОДАТЬ ВСЁ</button>
@@ -153,16 +156,16 @@
     </main>
 
     <script>
-        const ITEMS = ["Сифилис", "Герпес", "Почка соседа", "Девственность", "Правое яйцо", "Печень алкоголика", "Мамкина заначка", "Хромосома", "Золотой зуб", "Мозг хлебушка"];
+        const ITEMS = ["Сердце бывшего", "Золотой зуб", "Мозг хлебушка", "Почка соседа", "Печень алкоголика", "Хромосома"];
         let user = { name: "", bal: 1000, inv: [], stats: { ups: 0, lost: 0, earned: 0, best: {n: "-", p: 0} } };
         let chance = 10, selected = new Set(), spinning = false, currentRot = 0;
 
         function login() {
             const n = document.getElementById('user-in').value;
             if(!n) return;
-            const s = localStorage.getItem('upg_v6_'+n);
+            const s = localStorage.getItem('upg_v7_'+n);
             if(s) user = JSON.parse(s);
-            else { user.name = n; user.inv = [{id:1, n:"Твои яйца", p:100}, {id:2, n:"Девственность", p:350}]; }
+            else { user.name = n; user.inv = [{id:1, n:"Твои яйца", p:100}]; }
             document.getElementById('auth-screen').style.display='none';
             update();
         }
@@ -171,8 +174,9 @@
             document.getElementById('bal').innerText = Math.floor(user.bal);
             renderInv('inv-main', true);
             renderInv('inv-prof', false);
-            renderStats();
-            localStorage.setItem('upg_v6_'+user.name, JSON.stringify(user));
+            const box = document.getElementById('stat-box');
+            if(box) box.innerHTML = `👤 Игрок: ${user.name}<br>💸 Слито: ${user.stats.lost} ₴<br>📈 Прибыль: ${user.stats.earned} ₴`;
+            localStorage.setItem('upg_v7_'+user.name, JSON.stringify(user));
         }
 
         function renderInv(id, single) {
@@ -187,25 +191,36 @@
             });
         }
 
-        function renderStats() {
-            document.getElementById('stat-box').innerHTML = `👤 Игрок: <b>${user.name}</b><br>📊 Апгрейдов: ${user.stats.ups}<br>💸 Слито: <span style="color:var(--loss)">${user.stats.lost} ₴</span><br>📈 Прибыль: <span style="color:var(--win)">${user.stats.earned} ₴</span><br>🏆 Топ: ${user.stats.best.n}`;
-        }
-
         function showPage(p) {
             if(spinning) return;
             ['main','shop','profile'].forEach(x => document.getElementById('p-'+x).style.display='none');
             document.getElementById('p-'+p).style.display='block';
+            if(p === 'shop') refreshShop();
             selected.clear(); update();
         }
 
-        function setChance(c) { if(spinning) return; chance = c; document.getElementById('wheel-fill').style.height = c + '%'; document.getElementById('pct-view').innerText = c + '%'; }
+        function setChance(c) { 
+            if(spinning) return; 
+            chance = c; 
+            document.getElementById('wheel-fill').style.height = c + '%'; 
+            document.getElementById('pct-view').innerText = c + '%'; 
+        }
         function setM(m) { setChance(Math.floor(100/m)); }
 
         function startSpin() {
             if(spinning || selected.size !== 1) return;
-            spinning = true; document.getElementById('go-btn').disabled = true;
+            spinning = true;
+            document.getElementById('go-btn').disabled = true;
+            
+            // Очистка текста при старте
+            const msg = document.getElementById('status-msg');
+            msg.innerText = '';
+            msg.className = '';
+
             const itId = [...selected][0], idx = user.inv.findIndex(x => x.id === itId), item = user.inv[idx];
-            let start = null, dur = 5000, rot = 1440 + (Math.random()*360), sAng = currentRot;
+            let start = null, dur = 4500; 
+            let rot = 1080 + (Math.random()*360); // 3 полных круга + рандом
+            let sAng = currentRot;
 
             function animate(now) {
                 if(!start) start = now;
@@ -221,81 +236,81 @@
         }
 
         function finish(deg, item, idx) {
-            spinning = false; document.getElementById('go-btn').disabled = false;
+            spinning = false;
+            document.getElementById('go-btn').disabled = false;
             const half = (chance / 100) * 180, win = (deg >= 180 - half && deg <= 180 + half);
             const msg = document.getElementById('status-msg');
+            
             if(win) {
                 const profit = Math.floor(item.p * (100/chance)) - item.p;
                 item.p += profit; item.n = "★ " + item.n.replace("★ ", "");
                 user.stats.earned += profit;
-                if(item.p > user.stats.best.p) user.stats.best = {n: item.n, p: item.p};
-                msg.innerText = "ПОБЕДА"; msg.style.color = "var(--win)"; boom();
+                msg.innerText = "ПОБЕДА";
+                msg.className = "win-glow";
+                msg.style.color = "var(--win)";
+                boom();
             } else {
-                user.stats.lost += item.p; user.inv.splice(idx, 1);
-                msg.innerText = "НЕ БЕДА"; msg.style.color = "var(--loss)";
+                user.stats.lost += item.p;
+                user.inv.splice(idx, 1);
+                msg.innerText = "НЕ БЕДА";
+                msg.className = "loss-glow";
+                msg.style.color = "var(--loss)";
             }
-            user.stats.ups++; selected.clear(); update();
+            selected.clear(); update();
         }
 
-        // Modal Logic
+        // Modals
         function openSellModal(mode) {
+            if(user.inv.length === 0) return;
             const modal = document.getElementById('custom-modal');
             const desc = document.getElementById('modal-desc');
-            const confirmBtn = document.getElementById('modal-confirm');
-            let count = 0, sum = 0;
-
+            let sum = 0, count = 0;
             if(mode === 'selected') {
-                if(selected.size === 0) return;
-                user.inv.forEach(i => { if(selected.has(i.id)) { count++; sum += i.p; } });
+                user.inv.forEach(i => { if(selected.has(i.id)) { sum += i.p; count++; }});
+                if(count === 0) return;
                 desc.innerText = `Продать ${count} предметов за ${sum} ₴?`;
-                confirmBtn.onclick = () => { sellSelected(); closeModal(); };
+                document.getElementById('modal-confirm').onclick = () => { sellSelected(); closeModal(); };
             } else {
-                if(user.inv.length === 0) return;
-                count = user.inv.length;
-                sum = user.inv.reduce((a, b) => a + b.p, 0);
-                desc.innerText = `Продать все (${count} шт.) за ${sum} ₴?`;
-                confirmBtn.onclick = () => { sellAll(); closeModal(); };
+                sum = user.inv.reduce((a,b)=>a+b.p, 0);
+                desc.innerText = `Продать ВСЕ предметы (${user.inv.length} шт.) за ${sum} ₴?`;
+                document.getElementById('modal-confirm').onclick = () => { sellAll(); closeModal(); };
             }
             modal.style.display = 'flex';
         }
-
         function closeModal() { document.getElementById('custom-modal').style.display = 'none'; }
-        function sellSelected() {
-            user.inv = user.inv.filter(i => { if(selected.has(i.id)) { user.bal += i.p; return false; } return true; });
-            selected.clear(); update();
-        }
+        function sellSelected() { user.inv = user.inv.filter(i => { if(selected.has(i.id)) { user.bal += i.p; return false; } return true; }); selected.clear(); update(); }
         function sellAll() { user.inv.forEach(i => user.bal += i.p); user.inv = []; selected.clear(); update(); }
 
-        // Shop (Minimal for V6)
+        // Shop
         let sItems = [];
         function refreshShop() {
-            const b = parseInt(document.getElementById('budget').value) || 200; sItems = [];
-            for(let i=0; i<6; i++) sItems.push({id: 's'+i, n: ITEMS[Math.floor(Math.random()*ITEMS.length)], p: Math.floor(b * (0.8 + Math.random()*0.4))});
+            sItems = [];
+            for(let i=0; i<4; i++) sItems.push({id:'s'+i, n: ITEMS[Math.floor(Math.random()*ITEMS.length)], p: 100 + Math.floor(Math.random()*400)});
             const g = document.getElementById('shop-grid'); g.innerHTML = '';
             sItems.forEach(i => {
                 const d = document.createElement('div'); d.className = `item-frame ${selected.has(i.id) ? 'selected' : ''}`;
                 d.innerHTML = `<b>${i.n}</b><div class="price">${i.p} ₴</div>`;
-                d.onclick = () => { if(selected.has(i.id)) selected.delete(i.id); else selected.add(i.id); refreshShopUI(); };
+                d.onclick = () => { if(selected.has(i.id)) selected.delete(i.id); else selected.add(i.id); updateShopUI(); };
                 g.appendChild(d);
             });
         }
-        function refreshShopUI() { const cc = document.querySelectorAll('#shop-grid .item-frame'); sItems.forEach((it, i) => cc[i].className = `item-frame ${selected.has(it.id) ? 'selected' : ''}`); }
-        function buyAllSelected() {
-            let total = 0; sItems.forEach(i => { if(selected.has(i.id)) { total += i.p; user.inv.push({...i, id: Date.now()+Math.random()}); } });
-            if(total > user.bal) return alert("Мало денег!");
+        function updateShopUI() { document.querySelectorAll('#shop-grid .item-frame').forEach((el, i) => el.className = `item-frame ${selected.has(sItems[i].id) ? 'selected' : ''}`); }
+        function buySelected() {
+            let total = 0;
+            sItems.forEach(i => { if(selected.has(i.id)) { total += i.p; user.inv.push({...i, id: Date.now()+Math.random()}); }});
+            if(total > user.bal) return alert("Мало ₴");
             user.bal -= total; selected.clear(); showPage('main');
         }
 
         function boom() {
             const canvas = document.getElementById('p-canvas'); const ctx = canvas.getContext('2d');
             canvas.width = 270; canvas.height = 270; let parts = [];
-            for(let i=0; i<70; i++) parts.push({ x:135, y:135, vx:(Math.random()-0.5)*5, vy:(Math.random()-0.5)*5, r:Math.random()*3+1, l:1 });
-            function draw() {
+            for(let i=0; i<50; i++) parts.push({x:135, y:135, vx:(Math.random()-0.5)*6, vy:(Math.random()-0.5)*6, r:Math.random()*2+1, l:1});
+            function d() {
                 ctx.clearRect(0,0,270,270);
-                parts.forEach((p, i) => { p.x += p.vx; p.y += p.vy; p.l -= 0.005; ctx.fillStyle = `rgba(160, 32, 240, ${p.l})`; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 7); ctx.fill(); if(p.l <= 0) parts.splice(i, 1); });
-                if(parts.length > 0) requestAnimationFrame(draw);
-            }
-            draw();
+                parts.forEach((p, i) => { p.x += p.vx; p.y += p.vy; p.l -= 0.01; ctx.fillStyle = `rgba(160, 32, 240, ${p.l})`; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 7); ctx.fill(); if(p.l<=0) parts.splice(i,1); });
+                if(parts.length>0) requestAnimationFrame(d);
+            } d();
         }
     </script>
 </body>
