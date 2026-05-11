@@ -1,6 +1,6 @@
 const express = require('express');
 const Database = require('better-sqlite3');
-const db = new Database('./UPGRADOR.db');
+const db = new Database('./OPGRADOR.db');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -14,7 +14,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
 
-const db = new sqlite3.Database('./UPGRADOR.db', (err) => {
+const db = new sqlite3.Database('./OPGRADOR.db', (err) => {
     if (err) console.error('DB Error:', err);
     else console.log('✅ Database connected');
 });
