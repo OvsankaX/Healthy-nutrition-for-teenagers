@@ -612,7 +612,7 @@ function toast(text, isError = false) {
     if (isError) el.style.borderLeftColor = '#f87171';
     el.innerHTML = `<span>${text}</span><span class="toast-close" onclick="playClickSound(); this.parentElement.remove()">×</span>`;
     c.appendChild(el);
-    setTimeout(() => { if (el.parentElement) { el.classList.add('removing'); setTimeout(() => el.remove(), 300); } }, 3000);
+    setTimeout(() => { if (el.parentElement) { el.classList.add('removing'); setTimeout(() => el.remove(), 100); } }, 3000);
 }
 
 function openModal(text, action) {
