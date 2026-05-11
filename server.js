@@ -4,20 +4,57 @@ const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const path = require('path');
+const rateLimit = require('express-rate-limit');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const SECRET_KEY = process.env.SECRET_KEY || 'sg8ASkogf28hnHFbf_s23faS';
+
+// ✅ СЕКРЕТ ТОЛЬКО ИЗ ПЕРЕМЕННОЙ ОКРУЖЕНИЯ (Render)
+const SECRET_KEY = process.env.SECRET_KEY;
+if (!SECRET_KEY) {
+    console.error('❌ SECRET_KEY not set! Add it in Render Environment Variables');
+    process.exit(1);
+}
+
+// ✅ ЗАЩИТА ОТ БРУТФОРСА И СПАМА
+const globalLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 минут
+    max: 200, // максимум 200 запросов на IP
+    message: { error: 'TOO_MANY_REQUESTS', message: 'Слишком много запросов, подождите' }
+});
+
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10, // только 10 попыток логина/регистрации
+    skipSuccessfulRequests: true,
+    message: { error: 'TOO_MANY_ATTEMPTS', message: 'Слишком много попыток, подождите 15 минут' }
+});
 
 app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
+app.use('/api/', globalLimiter);
+app.use('/api/login', authLimiter);
+app.use('/api/register', authLimiter);
 
-// Подключение к БД (синхронное)
+// ✅ ЗАЩИТА ОТ МАССОВОЙ РЕГИСТРАЦИИ (по IP)
+const registerAttempts = new Map();
+
+// Очистка старых записей раз в час
+setInterval(() => {
+    const now = Date.now();
+    for (const [ip, data] of registerAttempts.entries()) {
+        if (now - data.timestamp > 3600000) {
+            registerAttempts.delete(ip);
+        }
+    }
+}, 3600000);
+
+// Подключение к БД
 const db = new Database('./OPGRADOR.db');
 console.log('✅ Database connected');
 
-// Создание таблиц (синхронно)
+// Создание таблиц
 db.exec(`
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -109,9 +146,21 @@ const authMiddleware = (req, res, next) => {
 // Регистрация
 app.post('/api/register', (req, res) => {
     const { username, password } = req.body;
+    const clientIp = req.ip || req.connection.remoteAddress;
+    
+    // Проверка на слишком частую регистрацию с одного IP
+    const attempts = registerAttempts.get(clientIp);
+    if (attempts && attempts.count >= 3) {
+        return res.status(429).json({ 
+            error: 'TOO_MANY_ACCOUNTS', 
+            message: 'С одного IP можно зарегистрировать не более 3 аккаунтов в час' 
+        });
+    }
     
     if (username.length > 16) return res.status(400).json({ error: 'USERNAME_TOO_LONG' });
     if (password.length > 32) return res.status(400).json({ error: 'PASSWORD_TOO_LONG' });
+    if (username.length < 3) return res.status(400).json({ error: 'USERNAME_TOO_SHORT' });
+    if (password.length < 3) return res.status(400).json({ error: 'PASSWORD_TOO_SHORT' });
     
     const user = db.prepare(`SELECT id FROM users WHERE username = ?`).get(username);
     if (user) return res.status(400).json({ error: 'USERNAME_TAKEN' });
@@ -123,6 +172,14 @@ app.post('/api/register', (req, res) => {
     db.prepare(`INSERT INTO stats (user_id) VALUES (?)`).run(userId);
     db.prepare(`INSERT INTO clicker_stats (user_id, last_click_time, clicked_today, total_clicks) VALUES (?, 0, 0, 0)`).run(userId);
     
+    console.log(`📝 New user registered: ${username} from ${clientIp}`);
+    
+    if (attempts) {
+        registerAttempts.set(clientIp, { count: attempts.count + 1, timestamp: Date.now() });
+    } else {
+        registerAttempts.set(clientIp, { count: 1, timestamp: Date.now() });
+    }
+    
     const token = jwt.sign({ userId }, SECRET_KEY);
     res.json({ token, userId, username });
 });
@@ -130,11 +187,16 @@ app.post('/api/register', (req, res) => {
 // Логин
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
+    const clientIp = req.ip || req.connection.remoteAddress;
     
     const user = db.prepare(`SELECT * FROM users WHERE username = ?`).get(username);
     if (!user) return res.status(401).json({ error: 'USER_NOT_FOUND' });
-    if (!bcrypt.compareSync(password, user.password)) return res.status(401).json({ error: 'WRONG_PASSWORD' });
+    if (!bcrypt.compareSync(password, user.password)) {
+        console.log(`⚠️ Failed login attempt for ${username} from ${clientIp}`);
+        return res.status(401).json({ error: 'WRONG_PASSWORD' });
+    }
     
+    console.log(`✅ User logged in: ${username} from ${clientIp}`);
     const token = jwt.sign({ userId: user.id }, SECRET_KEY);
     res.json({ token, userId: user.id, username: user.username });
 });
@@ -364,4 +426,5 @@ app.get('/api/leaderboard/:type', (req, res) => {
 // Запуск сервера
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`✅ Server running on http://localhost:${PORT}`);
+    console.log(`🔐 Security: Rate limiting enabled, SECRET_KEY from env`);
 });
