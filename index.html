@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>UPGRADOR V25 - КЛИКЕР</title>
+    <style>
+        :root {
+            --bg: #0a0a12; --panel: #13131f; --accent: #a855f7;
+            --accent2: #7c3aed; --win: #34d399; --loss: #f87171; --radius: 12px;
+        }
+        * { box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; padding: 0; }
+        body { background: var(--bg); color: #fff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+        #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes slideOutRight { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
+        .toast { background: rgba(19,19,31,0.95); border-left: 4px solid var(--accent); padding: 12px 16px; border-radius: 8px; font-weight: 500; font-size: 0.85rem; animation: slideInRight 0.3s forwards; backdrop-filter: blur(10px); }
+        .toast.removing { animation: slideOutRight 0.3s forwards; }
+        .toast-close { cursor: pointer; margin-left: 12px; }
+
+        header { height: 60px; background: #07070f; display: flex; align-items: center; padding: 0 15px; border-bottom: 1px solid #1e1e35; flex-shrink: 0; position: relative; gap: 8px; }
+        .header-logo { position: absolute; left: 50%; transform: translateX(-50%); font-weight: 900; font-size: 1.1rem; color: var(--accent); letter-spacing: 2px; text-shadow: 0 0 12px var(--accent); cursor: pointer; }
+        
+        .nav-btn {
+            background: rgba(19,19,31,0.8);
+            border: 1px solid #2a2a45;
+            border-radius: 12px;
+            cursor: pointer;
+            padding: 8px 12px;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            backdrop-filter: blur(4px);
+        }
+        .nav-btn svg {
+            stroke: currentColor;
+            fill: none;
+            width: 20px;
+            height: 20px;
+            transition: all 0.2s;
+        }
+        .nav-btn:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            background: rgba(168,85,247,0.1);
+            color: var(--accent);
+            box-shadow: 0 0 12px rgba(168,85,247,0.3);
+        }
+        
+        .balance-btn {
+            margin-left: auto;
+            background: rgba(19,19,31,0.8);
+            border: 1px solid #2a2a45;
+            border-radius: 12px;
+            cursor: pointer;
+            padding: 6px 16px;
+            backdrop-filter: blur(4px);
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .balance-btn:hover {
+            border-color: var(--accent);
+            background: rgba(168,85,247,0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 0 12px rgba(168,85,247,0.3);
+        }
+        .balance-amount {
+            font-size: 1rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff, #e9d5ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .balance-currency { font-size: 0.9rem; font-weight: 700; color: var(--accent); }
+        
+        main { flex-grow: 1; overflow-y: auto; padding: 15px; display: flex; justify-content: center; }
+        .container { display: none; width: 100%; max-width: 450px; }
+        .container.active { display: block; animation: pageTransition 0.25s cubic-bezier(0.22, 1, 0.36, 1); }
+        
+        @keyframes pageTransition {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Стили для кликера */
+        .clicker-card {
+            background: linear-gradient(145deg, #13131f, #0e0e1a);
+            border: 1px solid #2a2a45;
+            border-radius: 20px;
+            padding: 30px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .clicker-card:active {
+            transform: scale(0.98);
+        }
+        .clicker-card.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .clicker-card.disabled:active {
+            transform: none;
+        }
+        
+        .clicker-big {
+            font-size: 5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin: 20px 0;
+        }
+        
+        .clicker-progress {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            height: 12px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        .clicker-progress-fill {
+            background: linear-gradient(90deg, var(--accent2), var(--accent));
+            width: 0%;
+            height: 100%;
+            transition: width 0.3s ease;
+            border-radius: 20px;
+        }
+        
+        .clicker-stats {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .clicker-stat {
+            flex: 1;
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 10px;
+            text-align: center;
+        }
+        .clicker-stat-label {
+            font-size: 0.7rem;
+            color: #888;
+            letter-spacing: 1px;
+        }
+        .clicker-stat-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+        
+        .floating-number {
+            position: fixed;
+            pointer-events: none;
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--win);
+            text-shadow: 0 0 20px var(--win);
+            animation: floatUp 1s ease-out forwards;
+            z-index: 1000;
+        }
+        
+        @keyframes floatUp {
+            0% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(0.5);
+            }
+            50% {
+                opacity: 1;
+                transform: translate(-50%, -80px) scale(1.2);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -120px) scale(1.5);
+            }
+        }
+
+        .wheel-outer { display: flex; justify-content: center; margin: 15px 0; }
+        .wheel-container { position: relative; width: 240px; height: 240px; cursor: pointer; }
+        #donut-canvas { position: absolute; width: 240px; height: 240px; }
+        .wheel-inner { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 168px; height: 168px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #1a1030, #0a0a16); border: 1px solid #2a1f45; display: flex; align-items: center; justify-content: center; flex-direction: column; z-index: 5; }
+        .center-stat { text-align: center; position: relative; }
+        #pct-view { font-size: 2.3rem; font-weight: 900; transition: all 0.2s; }
+        #status-msg { 
+            font-size: 1rem; 
+            margin-top: 4px; 
+            font-weight: bold; 
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.2s cubic-bezier(0.34, 1.2, 0.64, 1);
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            text-align: center;
+            pointer-events: none;
+        }
+        #status-msg.show { opacity: 1; transform: scale(1); }
+        .win-text { color: var(--win); text-shadow: 0 0 15px var(--win), 0 0 30px var(--win); }
+        .loss-text { color: var(--loss); text-shadow: 0 0 15px var(--loss), 0 0 30px var(--loss); }
+        #particle-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 100; }
+
+        .btn-row { display: flex; gap: 8px; margin-bottom: 10px; }
+        .opt-btn { background: #13131f; border: 1px solid #2a2a45; color: #ccc; padding: 12px; border-radius: 10px; flex: 1; font-weight: bold; cursor: pointer; transition: all 0.2s; font-size: 0.85rem; }
+        .opt-btn:hover { border-color: var(--accent); transform: translateY(-2px); color: #fff; }
+        .opt-btn.active { border-color: var(--accent); box-shadow: 0 0 12px var(--accent); color: #fff; background: rgba(168,85,247,0.1); }
+
+        .action-btn { 
+            width: 100%; padding: 14px; background: linear-gradient(135deg, var(--accent2), var(--accent)); 
+            border: none; border-radius: var(--radius); color: #fff; font-size: 1rem; 
+            font-weight: 600; margin: 10px 0; cursor: pointer; transition: all 0.2s; 
+            position: relative;
+        }
+        .action-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px var(--accent); }
+        .action-btn:disabled { background: #1e1e30; opacity: 0.5; cursor: default; box-shadow: none; }
+
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; margin-top: 10px; }
+        .item-frame { border: 1px solid #2a2a45; border-radius: var(--radius); padding: 12px; background: linear-gradient(145deg, #13131f, #0e0e1a); text-align: center; cursor: pointer; transition: all 0.2s; }
+        .item-frame:hover { transform: translateY(-2px); border-color: var(--accent); }
+        .item-frame.selected { border-color: var(--accent); box-shadow: 0 0 14px var(--accent); }
+        .price { font-weight: bold; color: var(--win); margin-top: 4px; }
+        .star {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 6px;
+            vertical-align: middle;
+        }
+        .star svg {
+            width: 14px;
+            height: 14px;
+            fill: var(--accent);
+            stroke: none;
+            display: block;
+        }
+
+        .prof-card, .clicker-card-style {
+            background: linear-gradient(145deg, #13131f, #0e0e1a);
+            border: 1px solid #2a2a45;
+            border-radius: 15px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+        }
+        .logout-btn-top {
+            position: absolute;
+            top: 14px;
+            right: 16px;
+            background: #1e1e2e;
+            border: 1px solid #2a2a45;
+            padding: 6px 14px;
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .logout-btn-top:hover { background: #2a2a3e; transform: translateY(-1px); }
+        .prof-fields { margin-top: 8px; margin-right: 80px; }
+        .prof-row { display: flex; align-items: baseline; gap: 4px; margin-bottom: 6px; }
+        .field-label { font-size: 0.8rem; font-weight: 700; color: #fff; letter-spacing: 1px; }
+        .field-label::after { content: ":"; margin-left: 2px; margin-right: 6px; }
+        .prof-value { font-size: 1rem; font-weight: 600; color: #fff; }
+        #prof-nick { font-size: 1rem; font-weight: 800; color: var(--accent) !important; text-shadow: 0 0 6px rgba(168,85,247,0.4); }
+
+        .prof-total-card { 
+            background: linear-gradient(135deg, rgba(168,85,247,0.08), rgba(124,58,237,0.04)); 
+            border-radius: 12px; padding: 12px 14px; margin: 10px 0 0 0; 
+            border: 1px solid rgba(168,85,247,0.25);
+        }
+        .prof-total-label { font-size: 0.85rem; font-weight: 700; color: #fff; letter-spacing: 1.5px; margin-bottom: 4px; }
+        .prof-total-value { font-size: 1.6rem; font-weight: 800; color: #fff; line-height: 1.1; margin-bottom: 10px; }
+        .total-divider { height: 1px; background: linear-gradient(90deg, var(--accent), transparent); margin-bottom: 10px; }
+        .prof-total-stats { display: flex; flex-direction: column; gap: 4px; font-size: 0.9rem; font-weight: 700; }
+
+        .best-drop-card { 
+            background: rgba(168,85,247,0.07); 
+            border-radius: 10px; padding: 10px 14px; margin-top: 10px; 
+            border: 1px solid rgba(168,85,247,0.2);
+        }
+        .best-drop-card .field-label { font-size: 0.8rem; font-weight: 700; color: #fff; margin-bottom: 8px; display: block; letter-spacing: 1px; }
+        .best-drop-card .field-label::after { content: none; }
+        .best-divider { height: 1px; background: linear-gradient(90deg, var(--accent), transparent); margin: 6px 0 10px 0; }
+
+        .inv-frame { 
+            background: linear-gradient(145deg, #13131f, #0e0e1a); 
+            border: 1px solid #2a2a45; 
+            border-radius: var(--radius); 
+            overflow: hidden; 
+            margin: 0 0 15px 0; 
+        }
+        .inv-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(0,0,0,0.3); }
+        .inv-frame-label { font-size: 0.8rem; font-weight: 700; color: #fff; letter-spacing: 2px; }
+        .inv-balance-badge { font-size: 0.75rem; font-weight: 700; background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.3); border-radius: 8px; padding: 4px 12px; color: #fff; }
+        .inv-divider { height: 1px; background: linear-gradient(90deg, transparent, var(--accent), transparent); }
+        .inv-grid-wrap { padding: 12px; }
+
+        .sell-row { display: flex; gap: 10px; margin: 0 0 15px 0; }
+        .sell-btn { background: #13131f; border: 1px solid #2a2a45; color: #fff; padding: 12px; border-radius: 10px; flex: 1; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; }
+        .sell-btn:hover { border-color: var(--accent); transform: translateY(-2px); }
+
+        #modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 8000; backdrop-filter: blur(6px); }
+        #modal-overlay.visible { display: flex; }
+        @keyframes modalIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .modal-card { background: linear-gradient(145deg, #1a1a2e, #13131f); border: 2px solid var(--accent); border-radius: 15px; padding: 25px; max-width: 300px; text-align: center; animation: modalIn 0.2s forwards; box-shadow: 0 0 30px var(--accent); }
+
+        #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 9000; display: flex; align-items: center; justify-content: center; }
+
+        .leaderboard-card { background: linear-gradient(145deg, #13131f, #0e0e1a); border: 1px solid #2a2a45; border-radius: var(--radius); padding: 15px; }
+        .leaderboard-header { display: flex; gap: 8px; margin-bottom: 15px; }
+        .leaderboard-tab { 
+            flex: 1; text-align: center; padding: 10px 8px; cursor: pointer; background: #13131f;
+            border: 1px solid #2a2a45; border-radius: 10px; transition: all 0.2s; 
+            font-size: 0.7rem; font-weight: 600; color: #ccc;
+        }
+        .leaderboard-tab:hover { border-color: var(--accent); transform: translateY(-2px); color: #fff; }
+        .leaderboard-tab.active { border-color: var(--accent); box-shadow: 0 0 12px var(--accent); color: #fff; background: rgba(168,85,247,0.1); }
+        .leaderboard-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; margin: 5px 0; background: rgba(0,0,0,0.3); border-radius: 8px; transition: all 0.2s; }
+        .leaderboard-rank { font-weight: bold; width: 45px; color: var(--accent); }
+        .leaderboard-name { flex: 1; font-size: 0.8rem; color: #fff; }
+        .leaderboard-score { font-weight: bold; font-size: 0.8rem; }
+        .positive { color: var(--win); }
+        .negative { color: var(--loss); }
+        .leaderboard-self { background: rgba(168,85,247,0.12); border: 1px solid rgba(168,85,247,0.35); }
+
+        .auth-input { transition: all 0.2s; background: #07070f; border: 1px solid #2a2a45; color: #fff; border-radius: 8px; padding: 12px; outline: none; }
+        .auth-input:focus { border-color: var(--accent) !important; box-shadow: 0 0 10px rgba(168,85,247,0.3); }
+
+/* ========== КАСТОМНЫЙ СКРОЛЛБАР ========== */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #0a0a12;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #a855f7, #c084fc);
+}
+
+/* Для Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #a855f7 #0a0a12;
+}
+
+    </style>
+</head>
+<body>
+
+<div id="toast-container"></div>
+<div id="modal-overlay"><div class="modal-card"><p id="modal-text" style="margin-bottom:20px; font-size:1rem;"></p><div style="display:flex;gap:10px;"><button class="opt-btn" style="background:#222;" onclick="playClickSound(); closeModal(false)">ОТМЕНА</button><button class="opt-btn" style="background:linear-gradient(135deg,var(--accent2),var(--accent));" onclick="playClickSound(); closeModal(true)">ДА</button></div></div></div>
+
+<div id="auth-screen">
+    <div style="background:linear-gradient(145deg,#1a1a2e,#13131f);padding:25px;border-radius:15px;border:1px solid var(--accent);box-shadow:0 0 30px var(--accent);width:300px;text-align:center;">
+        <h2 style="color:var(--accent);margin-bottom:20px;">UPGRADOR</h2>
+        <input type="text" id="login-username" maxlength="16" placeholder="Логин (3-16 символов)" class="auth-input" style="width:100%;margin-bottom:10px;" onfocus="playFocusSound()">
+        <input type="password" id="login-password" maxlength="32" placeholder="Пароль (3-32 символа)" class="auth-input" style="width:100%;margin-bottom:10px;" onfocus="playFocusSound()">
+        <div id="confirm-password-group" style="display:none;">
+            <input type="password" id="confirm-password" maxlength="32" placeholder="Подтвердите пароль" class="auth-input" style="width:100%;margin-bottom:10px;" onfocus="playFocusSound()">
+        </div>
+        <button class="action-btn" id="auth-action-btn" style="margin:0 0 10px 0;" onclick="playClickSound(); submitAuth()">ВОЙТИ</button>
+        <button class="opt-btn" id="switch-auth-btn" style="width:100%" onclick="playClickSound(); switchAuthMode()">РЕГИСТРАЦИЯ</button>
+    </div>
+</div>
+
+<header>
+    <button class="nav-btn" onclick="playClickSound(); showPage('shop')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+    </button>
+    <button class="nav-btn" onclick="playClickSound(); showPage('leaderboard')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L15 8.5L22 9.5L17 14L18.5 21L12 17.5L5.5 21L7 14L2 9.5L9 8.5L12 2z"/></svg>
+    </button>
+    <div class="header-logo" onclick="playClickSound(); showPage('main')">UPGRADOR</div>
+    
+    <div class="balance-btn" onclick="playClickSound(); showPage('clicker')">
+        <span class="balance-amount" id="bal">0</span>
+        <span class="balance-currency">₴</span>
+    </div>
+    
+    <button class="nav-btn" onclick="playClickSound(); showPage('profile')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    </button>
+</header>
+
+<main>
+    <canvas id="particle-canvas"></canvas>
+    
+    <!-- Главная страница с рулеткой -->
+    <div id="p-main" class="container active">
+        <div class="wheel-outer"><div class="wheel-container"><canvas id="donut-canvas" width="240" height="240"></canvas><div class="wheel-inner"><div class="center-stat"><h2 id="pct-view">10%</h2><div id="status-msg"></div></div></div><svg id="cursor-svg" style="position:absolute;inset:0;width:240px;height:240px;z-index:20;pointer-events:none;" viewBox="0 0 240 240"><line id="cursor-line-svg" x1="120" y1="5" x2="120" y2="35" stroke="white" stroke-width="4" stroke-linecap="round" style="filter:drop-shadow(0 0 2px #fff) drop-shadow(0 0 4px #a855f7); transform-origin:120px 120px;"/></svg></div></div>
+        <div class="btn-row"><button class="opt-btn bc" id="m2" onclick="playClickSound(); setM(2,'m2')">X2</button><button class="opt-btn bc" id="m4" onclick="playClickSound(); setM(4,'m4')">X4</button><button class="opt-btn bc" id="m10" onclick="playClickSound(); setM(10,'m10')">X10</button></div>
+        <div class="btn-row"><button class="opt-btn bc" id="c35" onclick="playClickSound(); setChance(35,'c35')">35%</button><button class="opt-btn bc" id="c55" onclick="playClickSound(); setChance(55,'c55')">55%</button><button class="opt-btn bc" id="c75" onclick="playClickSound(); setChance(75,'c75')">75%</button></div>
+        <button class="action-btn" id="go-btn" onclick="playSpinClickSound(); startSpin()" disabled>ПРОКРУТИТЬ</button>
+        <div class="inv-frame"><div class="inv-header"><span class="inv-frame-label">ИНВЕНТАРЬ</span><span class="inv-balance-badge" id="inv-main-balance">0 ₴</span></div><div class="inv-divider"></div><div class="inv-grid-wrap"><div id="inv-main" class="grid"></div></div></div>
+    </div>
+    
+    <!-- Магазин -->
+    <div id="p-shop" class="container">
+        <div style="display:flex;gap:8px;margin-bottom:15px;"><input type="number" id="budget" value="10" min="10" placeholder="Мин. цена..." class="auth-input" style="flex:1;"><button class="opt-btn" style="flex:0.4" onclick="playClickSound(); refreshShop()">ПОИСК</button></div>
+        <div id="shop-grid" class="grid"></div>
+        <button class="action-btn" id="buy-btn" onclick="playClickSound(); askBuy()" disabled>КУПИТЬ ВЫБРАННОЕ</button>
+    </div>
+    
+    <!-- Страница кликера -->
+    <div id="p-clicker" class="container">
+        <div class="prof-card" style="position: relative; text-align: center;">
+            <div style="margin-bottom: 10px;">
+                <span class="field-label" style="font-size: 1.2rem;">КЛИКЕР</span>
+            </div>
+            <div class="clicker-card" id="clicker-area">
+                <div class="clicker-big">ТАП</div>
+                <div class="clicker-progress">
+                    <div class="clicker-progress-fill" id="progress-fill"></div>
+                </div>
+                <div class="clicker-stats">
+                    <div class="clicker-stat">
+                        <div class="clicker-stat-label">ОСТАЛОСЬ</div>
+                        <div class="clicker-stat-value" id="remaining-stats">5000</div>
+                    </div>
+                    <div class="clicker-stat">
+                        <div class="clicker-stat-label">ЗА ЧАС</div>
+                        <div class="clicker-stat-value" id="clicked-today">0</div>
+                    </div>
+                    <div class="clicker-stat">
+                        <div class="clicker-stat-label">ВСЕГО</div>
+                        <div class="clicker-stat-value" id="total-clicks">0</div>
+                    </div>
+                </div>
+                <div id="timer-text" style="font-size: 0.8rem; margin-top: 15px;"></div>
+            </div>
+            <div style="margin-top: 15px; font-size: 0.7rem; color: #555; text-align: center;">
+                +10 ₴ за тап • Лимит 5000 ₴/час
+            </div>
+        </div>
+    </div>
+    
+    <!-- Профиль -->
+    <div id="p-profile" class="container">
+        <div class="prof-card" style="position: relative;">
+            <button class="logout-btn-top" onclick="playClickSound(); logout()">ВЫЙТИ</button>
+            <div class="prof-fields">
+                <div class="prof-row"><div class="field-label">НИК</div><div id="prof-nick" class="prof-value">-</div></div>
+                <div class="prof-row"><div class="field-label">БАЛАНС</div><div id="prof-bal-display" class="prof-value">0 ₴</div></div>
+                <div class="prof-row"><div class="field-label">АПГРЕЙДОВ</div><div id="prof-ups-display" class="prof-value">0</div></div>
+            </div>
+            <div class="prof-total-card">
+                <div class="prof-total-label">ИТОГО</div>
+                <div id="prof-total" class="prof-total-value">0 ₴</div>
+                <div class="total-divider"></div>
+                <div class="prof-total-stats">
+                    <span style="color:var(--win)" id="prof-earned">+0</span>
+                    <span style="color:var(--loss)" id="prof-lost">-0</span>
+                </div>
+            </div>
+            <div class="best-drop-card">
+                <div class="field-label">ЛУЧШИЙ ДРОП</div>
+                <div class="best-divider"></div>
+                <div id="best-drop-text">Нет улучшений</div>
+            </div>
+        </div>
+        <div class="sell-row">
+            <button class="sell-btn" onclick="playClickSound(); askSellSelected()">ПРОДАТЬ ВЫБОР</button>
+            <button class="sell-btn" onclick="playClickSound(); askSellAll()">ПРОДАТЬ ВСЁ</button>
+        </div>
+        <div class="inv-frame">
+            <div class="inv-header"><span class="inv-frame-label">ИНВЕНТАРЬ</span><span class="inv-balance-badge" id="inv-balance-display">0 ₴</span></div>
+            <div class="inv-divider"></div>
+            <div class="inv-grid-wrap"><div id="inv-prof" class="grid"></div></div>
+        </div>
+    </div>
+    
+    <!-- Таблица лидеров -->
+    <div id="p-leaderboard" class="container">
+        <div class="leaderboard-card">
+            <div class="leaderboard-header">
+                <div class="leaderboard-tab active" data-type="wins" onclick="playClickSound(); loadLeaderboard('wins')">ВЫИГРЫШИ</div>
+                <div class="leaderboard-tab" data-type="losses" onclick="playClickSound(); loadLeaderboard('losses')">ПРОИГРЫШИ</div>
+                <div class="leaderboard-tab" data-type="total" onclick="playClickSound(); loadLeaderboard('total')">ИТОГО</div>
+            </div>
+            <div id="leaderboard-list"></div>
+        </div>
+    </div>
+</main>
+
+<script>
+// ========== ЗВУКОВАЯ СИСТЕМА ==========
+const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+function playBeep(frequency, duration, volume = 0.3, type = 'sine') {
+    if (audioContext.state === 'suspended') audioContext.resume();
+    const now = audioContext.currentTime;
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    oscillator.frequency.value = frequency;
+    oscillator.type = type;
+    gainNode.gain.value = volume;
+    gainNode.gain.exponentialRampToValueAtTime(0.00001, now + duration);
+    oscillator.start(now);
+    oscillator.stop(now + duration);
+}
+
+function playClickSound() { playBeep(880, 0.07, 0.15, 'sine'); }
+function playFocusSound() { playBeep(660, 0.05, 0.08, 'sine'); }
+function playSelectSound() { playBeep(1000, 0.05, 0.1, 'triangle'); }
+function playSpinClickSound() { playBeep(660, 0.1, 0.2, 'triangle'); }
+function playCoinSound() { 
+    playBeep(1200, 0.05, 0.2, 'sine');
+    setTimeout(() => playBeep(1500, 0.08, 0.15, 'sine'), 30);
+}
+
+// ========== ЗВУК РУЛЕТКИ ==========
+let clickTimeout = null;
+let isSpinningSound = false;
+
+function startSpinSound(duration) {
+    if (isSpinningSound) stopSpinSound();
+    if (audioContext.state === 'suspended') audioContext.resume();
+    isSpinningSound = true;
+    const startTime = performance.now();
+    const totalDuration = duration * 1000;
+    
+    function playClick() {
+        if (!isSpinningSound) return;
+        const elapsed = performance.now() - startTime;
+        const t = Math.min(elapsed / totalDuration, 1);
+        let nextDelay = t < 0.9 ? 50 + (t * t) * 120 : 180 + (t - 0.9) * 800;
+        
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        osc.connect(gain);
+        gain.connect(audioContext.destination);
+        osc.frequency.value = 800;
+        osc.type = 'sine';
+        gain.gain.value = 0.08;
+        osc.start();
+        gain.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 0.03);
+        osc.stop(audioContext.currentTime + 0.03);
+        
+        if (t < 0.98 && isSpinningSound) {
+            clickTimeout = setTimeout(() => playClick(), nextDelay);
+        } else {
+            setTimeout(() => stopSpinSound(), 100);
+        }
+    }
+    setTimeout(() => playClick(), 30);
+}
+
+function stopSpinSound() {
+    isSpinningSound = false;
+    if (clickTimeout) { clearTimeout(clickTimeout); clickTimeout = null; }
+}
+
+function playWinSound() {
+    playBeep(880, 0.15, 0.25, 'sine');
+    setTimeout(() => playBeep(1100, 0.2, 0.3, 'sine'), 100);
+    setTimeout(() => playBeep(1320, 0.25, 0.35, 'sine'), 250);
+}
+
+function playLossSound() {
+    playBeep(440, 0.2, 0.25, 'sine');
+    setTimeout(() => playBeep(330, 0.25, 0.3, 'sine'), 150);
+    setTimeout(() => playBeep(220, 0.3, 0.35, 'sine'), 300);
+}
+
+function playTransactionSound() {
+    playBeep(1000, 0.07, 0.12, 'sine');
+    setTimeout(() => playBeep(1200, 0.07, 0.12, 'sine'), 50);
+}
+
+// ========== ОСНОВНОЙ КОД ==========
+const API_URL = '/api';
+let token = localStorage.getItem('upg_token');
+let currentUser = null;
+let itemsPool = [];
+let chance = 10;
+let selected = new Set();
+let spinning = false;
+let particles = [];
+let isRegisterMode = false;
+let cursorCurrentDeg = 0;
+
+// Данные кликера
+let clickerData = { remaining: 5000, clickedToday: 0, totalClicks: 0, lastClickTime: 0 };
+let clickerCooldown = false;
+let timeoutId = null;  // для таймера обновления
+
+function toast(text, isError = false) {
+    const c = document.getElementById('toast-container');
+    const el = document.createElement('div');
+    el.className = 'toast';
+    if (isError) el.style.borderLeftColor = '#f87171';
+    el.innerHTML = `<span>${text}</span><span class="toast-close" onclick="playClickSound(); this.parentElement.remove()">×</span>`;
+    c.appendChild(el);
+    setTimeout(() => { if (el.parentElement) { el.classList.add('removing'); setTimeout(() => el.remove(), 300); } }, 3000);
+}
+
+function openModal(text, action) {
+    document.getElementById('modal-text').innerText = text;
+    document.getElementById('modal-overlay').classList.add('visible');
+    window.modalAction = action;
+}
+function closeModal(confirm) {
+    document.getElementById('modal-overlay').classList.remove('visible');
+    if (confirm && window.modalAction) window.modalAction();
+    window.modalAction = null;
+}
+
+function validateUsername(u) { return /^[a-zA-Z0-9]{3,16}$/.test(u); }
+function validatePassword(p) { return /^[a-zA-Z0-9!@#$%^&*()]{3,32}$/.test(p); }
+
+function switchAuthMode() {
+    isRegisterMode = !isRegisterMode;
+    const btn = document.getElementById('auth-action-btn');
+    const switchBtn = document.getElementById('switch-auth-btn');
+    const confirmGroup = document.getElementById('confirm-password-group');
+    if (isRegisterMode) {
+        btn.innerText = 'ЗАРЕГИСТРИРОВАТЬСЯ';
+        switchBtn.innerText = 'ВОЙТИ';
+        confirmGroup.style.display = 'block';
+    } else {
+        btn.innerText = 'ВОЙТИ';
+        switchBtn.innerText = 'РЕГИСТРАЦИЯ';
+        confirmGroup.style.display = 'none';
+    }
+}
+
+async function submitAuth() {
+    const username = document.getElementById('login-username').value.trim();
+    const password = document.getElementById('login-password').value;
+    const confirmPassword = document.getElementById('confirm-password')?.value;
+    if (!username || !password) { toast('Заполните все поля!', true); return; }
+    if (!validateUsername(username)) { toast('Логин: англ буквы и цифры, 3-16 символов!', true); return; }
+    if (!validatePassword(password)) { toast('Пароль: 3-32 символа!', true); return; }
+    
+    if (isRegisterMode) {
+        if (password !== confirmPassword) { toast('Пароли не совпадают!', true); return; }
+        try {
+            const res = await fetch(`${API_URL}/register`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                token = data.token; currentUser = { id: data.userId, username: data.username };
+                localStorage.setItem('upg_token', token); localStorage.setItem('upg_user', JSON.stringify(currentUser));
+                await loadUserData(); document.getElementById('auth-screen').style.display = 'none';
+                await loadItemsPool(); toast(`Добро пожаловать, ${username}!`); updateUI();
+            } else if (data.error === 'USERNAME_TAKEN') toast('Пользователь уже существует!', true);
+            else toast('Ошибка', true);
+        } catch (err) { toast('Ошибка сервера', true); }
+    } else {
+        try {
+            const res = await fetch(`${API_URL}/login`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                token = data.token; currentUser = { id: data.userId, username: data.username };
+                localStorage.setItem('upg_token', token); localStorage.setItem('upg_user', JSON.stringify(currentUser));
+                await loadUserData(); document.getElementById('auth-screen').style.display = 'none';
+                await loadItemsPool(); toast(`Добро пожаловать, ${username}!`); updateUI();
+            } else if (data.error === 'USER_NOT_FOUND') toast('Пользователь не найден!', true);
+            else if (data.error === 'WRONG_PASSWORD') toast('Неверный пароль!', true);
+        } catch (err) { toast('Ошибка сервера', true); }
+    }
+}
+
+function logout() {
+    localStorage.removeItem('upg_token'); localStorage.removeItem('upg_user');
+    token = null; currentUser = null;
+    document.getElementById('auth-screen').style.display = 'flex';
+    toast('Вы вышли');
+}
+
+async function loadUserData() {
+    if (!token) return;
+    const res = await fetch(`${API_URL}/user/${currentUser.id}`, { headers: { 'Authorization': `Bearer ${token}` } });
+    const data = await res.json();
+    currentUser = {
+        id: data.id, username: data.username, balance: data.balance,
+        best_item: data.best_item, best_chance: data.best_chance, best_price: data.best_price,
+        inventory: (data.inventory || []).map(item => ({ id: item.id, n: item.item_name, p: item.item_price, upgraded: item.is_upgraded })),
+        stats: data.stats || { ups: 0, earned: 0, lost: 0 },
+        clickerStats: data.clickerStats || { last_click_time: 0, clicked_today: 0, total_clicks: 0 }
+    };
+}
+
+async function loadClickerStats() {
+    if (!token) return;
+    if (timeoutId) clearTimeout(timeoutId);
+    try {
+        const res = await fetch(`${API_URL}/clicker/stats`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        clickerData = {
+            remaining: data.remaining,
+            clickedToday: data.clickedToday,
+            totalClicks: data.totalClicks,
+            lastClickTime: data.lastClickTime
+        };
+        updateClickerUI();
+    } catch (err) { console.error(err); }
+}
+
+async function makeClick(e) {
+    if (!token || clickerCooldown) return;
+    clickerCooldown = true;
+    
+    try {
+        const res = await fetch(`${API_URL}/clicker/click`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (res.status === 429) {
+            const error = await res.json();
+            toast(error.message, true);
+            clickerCooldown = false;
+            return;
+        }
+        
+        if (res.ok) {
+            const data = await res.json();
+            playCoinSound();
+            
+            // Показываем плавающее число
+            const x = e.clientX, y = e.clientY;
+            const div = document.createElement('div');
+            div.className = 'floating-number';
+            div.innerText = '+10 ₴';
+            div.style.left = x + 'px';
+            div.style.top = y + 'px';
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 1000);
+            
+            // Обновляем данные
+            clickerData.remaining = data.remaining;
+            clickerData.clickedToday = data.clickedToday;
+            clickerData.totalClicks = data.totalClicks;
+            updateClickerUI();
+            
+            // Обновляем баланс пользователя в реальном времени
+            if (currentUser) {
+                currentUser.balance = data.newBalance;
+                updateUI();
+            }
+            
+            // Анимация нажатия
+            const area = document.getElementById('clicker-area');
+            area.style.transform = 'scale(0.97)';
+            setTimeout(() => { area.style.transform = ''; }, 100);
+        }
+    } catch (err) { console.error(err); }
+    
+    setTimeout(() => { clickerCooldown = false; }, 100);
+}
+
+function updateClickerUI() {
+    const percent = (clickerData.clickedToday / 5000) * 100;
+    document.getElementById('progress-fill').style.width = percent + '%';
+    document.getElementById('remaining-stats').innerText = clickerData.remaining;
+    document.getElementById('clicked-today').innerText = clickerData.clickedToday;
+    document.getElementById('total-clicks').innerText = clickerData.totalClicks;
+    
+    const timerDiv = document.getElementById('timer-text');
+    
+    if (clickerData.lastClickTime > 0) {
+        const now = Date.now();
+        const hour = 3600000;
+        const timePassed = now - clickerData.lastClickTime;
+        
+        if (timePassed < hour && clickerData.remaining === 0) {
+            const minutesLeft = Math.floor((hour - timePassed) / 60000);
+            const secondsLeft = Math.floor(((hour - timePassed) % 60000) / 1000);
+            timerDiv.innerHTML = `⏰ Сброс через ${minutesLeft}:${secondsLeft.toString().padStart(2, '0')}`;
+            timerDiv.style.color = '#f87171';
+            if (timeoutId) clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => updateClickerUI(), 1000);
+        } else if (timePassed >= hour && clickerData.remaining === 0) {
+            timerDiv.innerHTML = `🔄 Обновить`;
+            timerDiv.style.color = '#34d399';
+            timerDiv.style.cursor = 'pointer';
+            timerDiv.onclick = () => { loadClickerStats(); };
+        } else if (clickerData.remaining > 0 && clickerData.remaining < 5000) {
+            timerDiv.innerHTML = `✨ Осталось ${clickerData.remaining} из 5000`;
+            timerDiv.style.color = '#a855f7';
+        } else if (clickerData.remaining === 5000) {
+            timerDiv.innerHTML = `✨ Полный лимит! Тапай!`;
+            timerDiv.style.color = '#34d399';
+        }
+    } else if (clickerData.remaining === 5000) {
+        timerDiv.innerHTML = `✨ Полный лимит! Тапай!`;
+        timerDiv.style.color = '#34d399';
+    } else if (clickerData.remaining > 0) {
+        timerDiv.innerHTML = `✨ Можно тапать!`;
+        timerDiv.style.color = '#a855f7';
+    } else {
+        timerDiv.innerHTML = `⏰ Лимит, жди час`;
+        timerDiv.style.color = '#f87171';
+    }
+}
+
+async function loadItemsPool() {
+    if (!token) return;
+    const res = await fetch(`${API_URL}/items-pool`, { headers: { 'Authorization': `Bearer ${token}` } });
+    itemsPool = await res.json();
+}
+
+async function buyItemAPI(itemName, itemPrice) {
+    const res = await fetch(`${API_URL}/buy-item`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ userId: currentUser.id, itemName, itemPrice })
+    });
+    return res.ok;
+}
+
+async function sellItemAPI(itemId, itemPrice) {
+    const res = await fetch(`${API_URL}/sell-item`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ userId: currentUser.id, itemId, itemPrice })
+    });
+    return res.ok;
+}
+
+async function sellAllAPI(totalPrice) {
+    const res = await fetch(`${API_URL}/sell-all`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ userId: currentUser.id, totalPrice })
+    });
+    return res.ok;
+}
+
+async function loadLeaderboard(type) {
+    const res = await fetch(`${API_URL}/leaderboard/${type}`);
+    let data = await res.json();
+    const container = document.getElementById('leaderboard-list');
+    container.innerHTML = '';
+    if (!currentUser) return;
+    
+    const userIndex = data.findIndex(u => u.username === currentUser.username);
+    const userRank = userIndex + 1;
+    const rowsToShow = [];
+    
+    for (let i = 0; i < Math.min(14, data.length); i++) {
+        rowsToShow.push({ rank: i + 1, data: data[i], isUser: data[i].username === currentUser.username });
+    }
+    
+    if (userRank > 14 && data[userIndex]) {
+        rowsToShow.push({ rank: userRank, data: data[userIndex], isUser: true });
+    }
+    
+    rowsToShow.forEach(row => {
+        const div = document.createElement('div');
+        div.className = 'leaderboard-item';
+        if (row.isUser) div.classList.add('leaderboard-self');
+        if (type === 'losses') {
+            div.innerHTML = `<div class="leaderboard-rank">${row.rank}</div><div class="leaderboard-name">${row.data.username}</div><div class="leaderboard-score negative">-${Math.abs(row.data.total)} ₴</div>`;
+        } else {
+            const isPositive = row.data.total >= 0;
+            div.innerHTML = `<div class="leaderboard-rank">${row.rank}</div><div class="leaderboard-name">${row.data.username}</div><div class="leaderboard-score ${isPositive ? 'positive' : 'negative'}">${isPositive ? '+' : ''}${row.data.total} ₴</div>`;
+        }
+        container.appendChild(div);
+    });
+    
+    document.querySelectorAll('.leaderboard-tab').forEach(tab => tab.classList.remove('active'));
+    document.querySelector(`.leaderboard-tab[data-type="${type}"]`).classList.add('active');
+}
+
+// ========== РУЛЕТКА ==========
+const donutC = document.getElementById('donut-canvas');
+const dCtx = donutC.getContext('2d');
+const CX = 120, CY = 120, R = 90, RING = 24;
+let donutCurrent = 10, donutAnim = null;
+
+function drawDonutRaw(pct) {
+    dCtx.clearRect(0, 0, 240, 240);
+    dCtx.beginPath(); dCtx.arc(CX, CY, R, 0, Math.PI * 2);
+    dCtx.strokeStyle = '#181828'; dCtx.lineWidth = RING; dCtx.stroke();
+    if (pct <= 0) return;
+    const bottom = Math.PI / 2, halfSweep = (pct / 100) * Math.PI;
+    const arcStart = bottom - halfSweep, arcEnd = bottom + halfSweep;
+    dCtx.save();
+    dCtx.beginPath(); dCtx.arc(CX, CY, R, arcStart, arcEnd);
+    dCtx.strokeStyle = 'rgba(168,85,247,0.22)'; dCtx.lineWidth = RING + 14; dCtx.stroke();
+    dCtx.restore();
+    const grad = dCtx.createLinearGradient(CX, CY + R, CX, CY - R);
+    grad.addColorStop(0, '#5b21b6'); grad.addColorStop(0.5, '#a855f7'); grad.addColorStop(1, '#e9d5ff');
+    dCtx.beginPath(); dCtx.arc(CX, CY, R, arcStart, arcEnd);
+    dCtx.strokeStyle = grad; dCtx.lineWidth = RING; dCtx.stroke();
+}
+
+function animateDonut(target) {
+    if (donutAnim) cancelAnimationFrame(donutAnim);
+    if (Math.abs(donutCurrent - target) < 0.5) { donutCurrent = target; drawDonutRaw(target); return; }
+    let start = null;
+    const from = donutCurrent;
+    const dur = 400;
+    function step(now) {
+        if (!start) start = now;
+        const t = Math.min((now - start) / dur, 1);
+        const ease = 1 - Math.pow(1 - t, 3);
+        donutCurrent = from + (target - from) * ease;
+        drawDonutRaw(donutCurrent);
+        if (t < 1) donutAnim = requestAnimationFrame(step);
+        else { donutCurrent = target; drawDonutRaw(target); donutAnim = null; }
+    }
+    donutAnim = requestAnimationFrame(step);
+}
+
+const cursorLine = document.getElementById('cursor-line-svg');
+function setCursorDeg(deg) { cursorLine.style.transform = `rotate(${deg}deg)`; cursorCurrentDeg = deg; }
+
+const canvas = document.getElementById('particle-canvas');
+const ctx = canvas.getContext('2d');
+function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+resizeCanvas(); window.addEventListener('resize', resizeCanvas);
+
+function spawnExplosion() {
+    const wc = document.querySelector('.wheel-container');
+    const rect = wc.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
+    for (let i = 0; i < 100; i++) {
+        const a = Math.random() * Math.PI * 2, s = 2 + Math.random() * 8;
+        particles.push({ x: cx, y: cy, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 1, size: Math.random() * 4 + 2, color: '#a855f7', gravity: 0.05 });
+    }
+}
+
+function updateParticles() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx; p.y += p.vy; p.vy += p.gravity; p.life -= 0.01;
+        if (p.life <= 0) { particles.splice(i, 1); continue; }
+        ctx.globalAlpha = p.life; ctx.fillStyle = p.color;
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.globalAlpha = 1; requestAnimationFrame(updateParticles);
+}
+updateParticles();
+
+function animateNumber(element, target, prefix = '', suffix = '') {
+    if (!element) return;
+    const start = parseFloat(element.innerText.replace(/[^0-9.-]/g, '')) || 0;
+    if (start === target) return;
+    let startTime = null;
+    const duration = 400;
+    function step(now) {
+        if (!startTime) startTime = now;
+        const t = Math.min((now - startTime) / duration, 1);
+        const ease = 1 - Math.pow(1 - t, 2);
+        const current = start + (target - start) * ease;
+        element.innerText = prefix + Math.floor(current) + suffix;
+        if (t < 1) requestAnimationFrame(step);
+        else element.innerText = prefix + Math.floor(target) + suffix;
+    }
+    requestAnimationFrame(step);
+}
+
+function updateUI() {
+    if (!currentUser) return;
+    animateNumber(document.getElementById('bal'), currentUser.balance);
+    document.getElementById('prof-nick').innerText = currentUser.username;
+    animateNumber(document.getElementById('prof-bal-display'), currentUser.balance, '', ' ₴');
+    animateNumber(document.getElementById('prof-ups-display'), currentUser.stats.ups);
+    const total = currentUser.stats.earned - currentUser.stats.lost;
+    document.getElementById('prof-total').innerHTML = (total >= 0 ? '+' : '') + total + ' ₴';
+    document.getElementById('prof-total').style.color = total >= 0 ? 'var(--win)' : 'var(--loss)';
+    document.getElementById('prof-earned').innerHTML = `+${currentUser.stats.earned}`;
+    document.getElementById('prof-lost').innerHTML = `-${currentUser.stats.lost}`;
+    
+    const bestText = currentUser.best_item ? `${currentUser.best_item} • ${currentUser.best_price} ₴ • шанс ${currentUser.best_chance}%` : 'Нет улучшений';
+    document.getElementById('best-drop-text').innerHTML = bestText;
+    
+    const invSum = currentUser.inventory.reduce((a, b) => a + b.p, 0);
+    animateNumber(document.getElementById('inv-balance-display'), invSum, '', ' ₴');
+    animateNumber(document.getElementById('inv-main-balance'), invSum, '', ' ₴');
+    renderInv('inv-main', true);
+    renderInv('inv-prof', false);
+    document.getElementById('go-btn').disabled = (selected.size === 0 || spinning);
+}
+
+function renderInv(id, single) {
+    const g = document.getElementById(id);
+    if (!g) return;
+    g.innerHTML = '';
+    (currentUser.inventory || []).forEach(i => {
+        const d = document.createElement('div');
+        d.className = `item-frame ${selected.has(i.id) ? 'selected' : ''}`;
+        const star = i.upgraded ? `<span class="star"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15 8.5 22 9.5 17 14 18.5 21 12 17.5 5.5 21 7 14 2 9.5 9 8.5 12 2"/></svg></span>` : '';
+        d.innerHTML = `<b>${i.n}</b>${star}<div class="price">${i.p} ₴</div>`;
+        d.onclick = () => {
+            if (spinning) return;
+            playSelectSound();
+            if (single) { 
+                let was = selected.has(i.id); selected.clear(); 
+                if (!was) selected.add(i.id); 
+            } else { 
+                if (selected.has(i.id)) selected.delete(i.id); 
+                else selected.add(i.id); 
+            }
+            updateUI();
+        };
+        g.appendChild(d);
+    });
+}
+
+function setChance(c, id) {
+    if (spinning) return;
+    chance = c;
+    animateDonut(c);
+    animateNumber(document.getElementById('pct-view'), c, '', '%');
+    document.querySelectorAll('.bc').forEach(b => b.classList.remove('active'));
+    if (id) document.getElementById(id).classList.add('active');
+}
+function setM(m, id) { setChance(Math.floor(100 / m), id); }
+
+async function startSpin() {
+    if (spinning || selected.size !== 1) return;
+    spinning = true;
+    document.getElementById('go-btn').disabled = true;
+    
+    const item = currentUser.inventory.find(x => x.id === [...selected][0]);
+    if (!item) { spinning = false; updateUI(); return; }
+    
+    const res = await fetch(`${API_URL}/spin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ userId: currentUser.id, itemId: item.id, chance })
+    });
+    const result = await res.json();
+    
+    const targetDeg = result.targetDeg;
+    const startDeg = cursorCurrentDeg % 360;
+    const rotations = 5 + Math.floor(Math.random() * 3);
+    let endDeg;
+    if (targetDeg >= startDeg) {
+        endDeg = startDeg + rotations * 360 + (targetDeg - startDeg);
+    } else {
+        endDeg = startDeg + rotations * 360 + (360 - startDeg + targetDeg);
+    }
+    
+    const startTime = performance.now();
+    const duration = result.spinDuration || 2800;
+    startSpinSound(duration / 1000);
+    
+    function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+    
+    function animateSpin(now) {
+        const elapsed = now - startTime;
+        let t = Math.min(elapsed / duration, 1);
+        const ease = easeOutCubic(t);
+        const currentDeg = startDeg + (endDeg - startDeg) * ease;
+        setCursorDeg(currentDeg % 360);
+        if (t < 1) requestAnimationFrame(animateSpin);
+        else { setCursorDeg(targetDeg); finishSpin(result); }
+    }
+    requestAnimationFrame(animateSpin);
+}
+
+async function finishSpin(result) {
+    stopSpinSound();
+    const msgDiv = document.getElementById('status-msg');
+    if (result.win) {
+        playWinSound();
+        spawnExplosion();
+        msgDiv.innerText = 'Успешно';
+        msgDiv.className = 'win-text';
+    } else {
+        playLossSound();
+        msgDiv.innerText = 'Не беда';
+        msgDiv.className = 'loss-text';
+    }
+    msgDiv.classList.remove('show');
+    void msgDiv.offsetWidth;
+    msgDiv.classList.add('show');
+    setTimeout(() => msgDiv.classList.remove('show'), 1500);
+    await loadUserData();
+    spinning = false;
+    selected.clear();
+    updateUI();
+    document.getElementById('go-btn').disabled = (selected.size === 0 || spinning);
+}
+
+let shopItems = [];
+function refreshShop() {
+    const b = parseInt(document.getElementById('budget').value) || 10;
+    if (b < 10) document.getElementById('budget').value = 10;
+    shopItems = Array.from({ length: 6 }, (_, i) => ({
+        id: 's' + i, n: itemsPool[Math.floor(Math.random() * itemsPool.length)] || 'Кейс',
+        p: Math.floor(Math.max(10, b + Math.random() * b * 0.5)), sel: false
+    }));
+    const g = document.getElementById('shop-grid');
+    g.innerHTML = '';
+    shopItems.forEach(i => {
+        const d = document.createElement('div');
+        d.className = 'item-frame';
+        d.innerHTML = `<b>${i.n}</b><div class="price">${i.p} ₴</div>`;
+        d.onclick = () => { playSelectSound(); i.sel = !i.sel; d.classList.toggle('selected'); updateBuyBtn(); };
+        g.appendChild(d);
+    });
+    updateBuyBtn();
+}
+
+function updateBuyBtn() { document.getElementById('buy-btn').disabled = !shopItems.some(i => i.sel); }
+
+async function askBuy() {
+    const sel = shopItems.filter(i => i.sel);
+    if (!sel.length) { toast("ВЫБЕРИ ПРЕДМЕТЫ!"); return; }
+    const cost = sel.reduce((a, b) => a + b.p, 0);
+    openModal(`КУПИТЬ ${sel.length} ПРЕДМЕТ(ОВ) ЗА ${cost} ₴?`, async () => {
+        if (currentUser.balance < cost) { toast("МАЛО ДЕНЕГ!"); return; }
+        for (let i of sel) await buyItemAPI(i.n, i.p);
+        await loadUserData();
+        playTransactionSound();
+        toast(`КУПЛЕНО ${sel.length} ПРЕДМЕТ(ОВ) НА ${cost} ₴`);
+        refreshShop();
+        updateUI();
+    });
+}
+
+async function askSellSelected() {
+    const sel = currentUser.inventory.filter(i => selected.has(i.id));
+    if (!sel.length) return;
+    const cost = sel.reduce((a, b) => a + b.p, 0);
+    openModal(`ПРОДАТЬ ${sel.length} ПРЕДМЕТ(ОВ) ЗА ${cost} ₴?`, async () => {
+        for (let i of sel) await sellItemAPI(i.id, i.p);
+        await loadUserData();
+        playTransactionSound();
+        selected.clear();
+        updateUI();
+        toast(`ПРОДАНО ${sel.length} ПРЕДМЕТ(ОВ) ЗА ${cost} ₴`);
+    });
+}
+
+async function askSellAll() {
+    if (!currentUser.inventory.length) return;
+    const count = currentUser.inventory.length;
+    const cost = currentUser.inventory.reduce((a, b) => a + b.p, 0);
+    openModal(`ПРОДАТЬ ВСЕ ${count} ПРЕДМЕТ(ОВ) ЗА ${cost} ₴?`, async () => {
+        await sellAllAPI(cost);
+        await loadUserData();
+        playTransactionSound();
+        updateUI();
+        toast(`ПРОДАНО ${count} ПРЕДМЕТ(ОВ) ЗА ${cost} ₴`);
+    });
+}
+
+let currentPage = 'main';
+function showPage(p) {
+    if (spinning) return;
+    if (timeoutId) clearTimeout(timeoutId);
+    document.getElementById('p-' + currentPage).classList.remove('active');
+    document.getElementById('p-' + p).classList.add('active');
+    currentPage = p;
+    selected.clear();
+    updateUI();
+    if (p === 'leaderboard') loadLeaderboard('wins');
+    if (p === 'shop') refreshShop();
+    if (p === 'clicker') loadClickerStats();
+}
+
+// Назначение обработчика кликера
+document.getElementById('clicker-area').onclick = (e) => {
+    if (clickerData.remaining > 0) {
+        makeClick(e);
+    } else {
+        toast('Лимит 5000 ₴ в час! Жди сброса.', true);
+    }
+};
+
+drawDonutRaw(10);
+setChance(10, null);
+
+if (token && localStorage.getItem('upg_user')) {
+    currentUser = JSON.parse(localStorage.getItem('upg_user'));
+    loadUserData().then(() => { 
+        document.getElementById('auth-screen').style.display = 'none'; 
+        loadItemsPool(); 
+        updateUI();
+        refreshShop();
+        loadClickerStats();
+    });
+} else {
+    document.getElementById('p-main').classList.add('active');
+}
+
+
+</script>
+</body>
+</html>
